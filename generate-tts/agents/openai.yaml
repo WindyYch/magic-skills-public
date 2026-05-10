@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate TTS"
+  short_description: "Create MiniMax speech audio from text"
+  default_prompt: "Use $generate-tts to synthesize speech with MiniMax and optionally save the audio to a local file."

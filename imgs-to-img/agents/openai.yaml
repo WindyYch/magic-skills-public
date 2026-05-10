@@ -1,0 +1,4 @@
+interface:
+  display_name: "Imgs to Img"
+  short_description: "Preview and confirm Duomi image parameters before async generation"
+  default_prompt: "Use $imgs-to-img to preview the effective Duomi generation parameters, ask the user to confirm or modify model, aspect_ratio, and image_size, then create the task and follow it asynchronously."

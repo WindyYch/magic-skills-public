@@ -1,0 +1,446 @@
+{
+  "project_meta": {
+    "project_id": "gold_undersea_broadcast",
+    "title": "海底城市最后一次广播",
+    "workflow_mode": "mixed",
+    "duration_target_sec": 32,
+    "aspect_ratio": "9:16",
+    "language": "zh"
+  },
+  "global_assets": [
+    {
+      "asset_id": "CHAR_01",
+      "name": "维修机器人阿拾",
+      "type": "character",
+      "description": "小型海底维修机器人，体型紧凑，金属外壳长期受海水侵蚀而旧化发暗，始终处在潮湿高压环境中，情绪主要通过停顿、抬头和动作迟疑来传达。",
+      "reference_strategy": "generate_reference"
+    },
+    {
+      "asset_id": "PROP_01",
+      "name": "工具无人机小泡",
+      "type": "prop",
+      "description": "圆球形辅助工具无人机，带柔和工作灯，始终作为阿拾的近身跟随辅助设备出现。",
+      "reference_strategy": "generate_reference"
+    },
+    {
+      "asset_id": "ENV_01",
+      "name": "失效广播塔",
+      "type": "environment_anchor",
+      "description": "停播多年的海底广播塔，塔体巨大而衰败，带有旧时代公共设施气质，塔顶那一格孤立红灯始终是最重要的视觉锚点。",
+      "reference_strategy": "generate_reference"
+    },
+    {
+      "asset_id": "PROP_02",
+      "name": "人类语音芯片",
+      "type": "prop",
+      "description": "被长期封存的人类录音芯片，始终保持微弱发光，显得珍贵而脆弱，并与人类记忆直接关联。",
+      "reference_strategy": "scene_only"
+    },
+    {
+      "asset_id": "ENV_02",
+      "name": "城市天幕灯带",
+      "type": "environment_anchor",
+      "description": "海底城市大范围照明系统，具有明显的线性灯带结构，会从沉寂到逐层点亮，是城市苏醒的主要视觉符号。",
+      "reference_strategy": "scene_only"
+    }
+  ],
+  "scene_assets": [
+    {
+      "asset_id": "LOC_01",
+      "name": "海底城市外环维修平台",
+      "type": "location",
+      "description": "锈蚀而潮湿的维修平台，长期暴露在海底高压水流中，整体带冷蓝幽光和强烈工业感。"
+    },
+    {
+      "asset_id": "SCREEN_01",
+      "name": "外环维护终端屏",
+      "type": "screen_content",
+      "description": "表面覆盖盐霜并带腐蚀痕迹的旧维护终端，显示断续卡顿的老系统界面。"
+    },
+    {
+      "asset_id": "LOC_02",
+      "name": "广播塔内部升降井",
+      "type": "location",
+      "description": "狭窄而压迫的垂直井道，墙面布满剥落编号与沉积物，深处红灯闪烁，声音容易形成回响。"
+    },
+    {
+      "asset_id": "LOC_03",
+      "name": "广播塔核心机房",
+      "type": "location",
+      "description": "像被海水遗忘的旧时代机房，布满尘埃与停摆设备，只剩少量系统残存供电，空间里常有低频嗡鸣和冷白应急照明。"
+    },
+    {
+      "asset_id": "SET_01",
+      "name": "裂纹玻璃存储舱",
+      "type": "setpiece",
+      "description": "位于核心机房中央的裂纹玻璃存储舱，内部封存语音芯片，在画面中始终具有被供奉般的中央陈列感。"
+    },
+    {
+      "asset_id": "LOC_04",
+      "name": "海底城市中央连桥",
+      "type": "location",
+      "description": "连接城市主控与居民区的高位连桥，空间纵深强，可俯看大片城市结构和灯带扩散过程。"
+    },
+    {
+      "asset_id": "LOC_05",
+      "name": "海底城市外环远景",
+      "type": "location",
+      "description": "能同时看见广播塔与城市天幕的深海远景，环境安静，浮游物缓慢漂移，适合结尾总览整座发光城市。"
+    }
+  ],
+  "global_audio_assets": [
+    {
+      "audio_asset_id": "VOICE_01",
+      "name": "旁白",
+      "type": "narrator_voice",
+      "speaker_ref": "旁白",
+      "usage_mode": "remotion_tts",
+      "voice_traits": [
+        "克制",
+        "温和",
+        "略带悬疑感",
+        "适合短句叙述"
+      ]
+    },
+    {
+      "audio_asset_id": "VOICE_02",
+      "name": "维修机器人阿拾",
+      "type": "character_voice",
+      "speaker_ref": "维修机器人阿拾",
+      "usage_mode": "kling_voice",
+      "voice_traits": [
+        "年轻机械质感",
+        "简短直接",
+        "情绪压得很低"
+      ]
+    },
+    {
+      "audio_asset_id": "VOICE_03",
+      "name": "人类母亲录音",
+      "type": "character_voice",
+      "speaker_ref": "人类母亲录音",
+      "usage_mode": "kling_voice",
+      "voice_traits": [
+        "疲惫但温柔",
+        "旧录音轻微底噪",
+        "像跨越多年留下的留言"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "S_01",
+      "story_role": "hook",
+      "summary": "阿拾在海底外环维修平台作业时，发现停播多年的广播塔重新亮起一格红灯。",
+      "duration_hint_sec": 3,
+      "subject_refs": ["CHAR_01", "ENV_01"],
+      "scene_asset_refs": ["LOC_01"],
+      "continuity_notes": [
+        "阿拾初始状态为正常作业中",
+        "广播塔红灯首次出现，后续场景必须保持为剧情驱动力"
+      ],
+      "shot_type": "wide",
+      "motion_intensity": "active",
+      "generation_mode": "video_first",
+      "image_prompt": "wide shot, a small weathered repair robot paused mid-repair and looking up on a rusted undersea maintenance platform, surrounded by corroded industrial structures and heavy drifting water current, lit by cold blue underwater reflections with a single tiny red light glowing at the top of a distant abandoned broadcast tower, metallic, damp, high-pressure sci-fi atmosphere, the key visual is the lonely red tower light seen from the robot's point of discovery, no extra humans, no bright sunlight, no clean futuristic surfaces.",
+      "video_prompt": "From this exact image moment, the underwater current keeps sweeping across the platform while the repair robot reacts more clearly by lifting its head toward the tower. The distant red light remains the visual anchor as the camera makes a slow push-in or subtle forward drift to sharpen the moment of discovery. Keep the world cold, industrial, submerged, and tense. No extra characters.",
+      "negative_constraints": [
+        "不要出现额外人类角色",
+        "不要出现暖色阳光海面",
+        "不要把环境做成干净明亮的太空站"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "environment_anchor:ENV_01",
+        "location_anchor:LOC_01"
+      ],
+      "audio": {
+        "audio_type": "voiceover",
+        "speaker_ref": "旁白",
+        "text": "海底城市停播十三年后，最后一座广播塔第一次亮了。",
+        "usage_mode": "remotion_tts"
+      },
+      "sound_design": {
+        "sfx_notes": "远处电流重新接通的滋滋声，平台金属部件轻微震颤。",
+        "ambience_notes": "持续低沉水压轰鸣与海底工业底噪。"
+      },
+      "lip_sync_required": false,
+      "subtitle_source": "audio_content"
+    },
+    {
+      "scene_id": "S_02",
+      "story_role": "setup",
+      "summary": "阿拾检查外环维护终端，发现来源于旧人类频道的广播权限提示。",
+      "duration_hint_sec": 4,
+      "subject_refs": ["CHAR_01"],
+      "scene_asset_refs": ["LOC_01", "SCREEN_01"],
+      "continuity_notes": [
+        "延续 S_01 的潮湿外环平台环境",
+        "剧情从远距离异常转为具体信息确认"
+      ],
+      "shot_type": "medium_close",
+      "motion_intensity": "subtle",
+      "generation_mode": "video_first",
+      "image_prompt": "medium close shot, the repair robot's mechanical hand paused beside an old maintenance terminal on the undersea platform, with salt frost partially wiped away and a corroded legacy interface showing the human broadcast permission warning text, set within a damp industrial environment with cold blue reflections and worn metal surfaces, tactile screen detail and aged machinery texture, the key visual is the warning text becoming clearly readable on the terminal, no modern glossy UI, no extra characters.",
+      "video_prompt": "From this exact image moment, the robot's hand finishes wiping across the salt frost while the damaged interface flickers and stabilizes. Let the warning text become more legible as the camera adds a restrained inward creep or a slight focus shift toward the screen. Keep the scene intimate, damp, and industrial. No clean hologram UI.",
+      "negative_constraints": [
+        "不要现代全息大屏风格",
+        "不要把终端做成全新设备"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "location_anchor:LOC_01",
+        "screen_insert:SCREEN_01"
+      ],
+      "audio": {
+        "audio_type": "voiceover",
+        "speaker_ref": "旁白",
+        "text": "权限来源不是城市主机，而是一个早该消失的人类频道。",
+        "usage_mode": "remotion_tts"
+      },
+      "sound_design": {
+        "sfx_notes": "终端开机蜂鸣，卡顿点击声，指节擦过屏幕盐霜的细碎摩擦声。",
+        "ambience_notes": "外环平台水滴敲打外壳与远处水流声持续存在。"
+      },
+      "lip_sync_required": false,
+      "subtitle_source": "audio_content"
+    },
+    {
+      "scene_id": "S_03",
+      "story_role": "build",
+      "summary": "阿拾带着小泡进入广播塔内部升降井，沿着忽明忽暗的红光向下追索。",
+      "duration_hint_sec": 4,
+      "subject_refs": ["CHAR_01", "PROP_01", "ENV_01"],
+      "scene_asset_refs": ["LOC_02"],
+      "continuity_notes": [
+        "阿拾从平台进入塔内，动作目标更明确",
+        "小泡第一次作为明确陪伴道具出现，后续需保持造型一致"
+      ],
+      "shot_type": "tracking_medium",
+      "motion_intensity": "active",
+      "generation_mode": "dialogue_native",
+      "image_prompt": "tracking-style medium shot, the repair robot and a glowing spherical helper drone suspended inside a narrow abandoned elevator shaft, with peeling serial numbers on damp metallic walls, sediment buildup, and a pulsing red light deeper below, lit by dim reflected work light and cold residual industrial glow, claustrophobic and pressure-heavy atmosphere, the key visual is the blinking red light luring them deeper through the shaft, no human bodies, no extra characters.",
+      "video_prompt": "From this exact image moment, the robot and helper drone continue descending deeper into the shaft while the red light pulses ahead. Let the camera drift forward and slightly downward through the confined space to intensify pressure. The character says exactly this line in Chinese: 「小泡，记录全程。我要知道是谁在里面说话。」. Do not say any other words and do not speak any other language. Keep the space damp, industrial, and claustrophobic.",
+      "negative_constraints": [
+        "不要开阔明亮空间",
+        "不要出现其他活动角色",
+        "不要把无人机改成拟人生物"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "character_reference:PROP_01",
+        "environment_anchor:ENV_01",
+        "location_anchor:LOC_02"
+      ],
+      "audio": {
+        "audio_type": "dialogue",
+        "speaker_ref": "维修机器人阿拾",
+        "text": "小泡，记录全程。我要知道是谁在里面说话。",
+        "usage_mode": "kling_voice"
+      },
+      "sound_design": {
+        "sfx_notes": "盖板开启金属摩擦声，短促推进器喷气声，井道回声。",
+        "ambience_notes": "狭窄井道低频回响与潮湿内部机械余振。"
+      },
+      "lip_sync_required": true,
+      "subtitle_source": "dialogue_alignment"
+    },
+    {
+      "scene_id": "S_04",
+      "story_role": "turn",
+      "summary": "阿拾进入核心机房，看到裂纹存储舱中仍在发光的人类语音芯片。",
+      "duration_hint_sec": 5,
+      "subject_refs": ["CHAR_01", "PROP_02"],
+      "scene_asset_refs": ["LOC_03", "SET_01"],
+      "continuity_notes": [
+        "从狭窄井道转入更安静、更像圣坛的空间",
+        "芯片首次被看见，后续需保持形态与光感一致"
+      ],
+      "shot_type": "wide_to_medium",
+      "motion_intensity": "subtle",
+      "generation_mode": "video_first",
+      "image_prompt": "wide-to-medium shot, the repair robot hesitating beside a cracked central glass storage chamber inside an abandoned undersea core machine room, surrounded by dormant servers, suspended dust, and old industrial architecture, lit by cold white emergency light with the human voice chip faintly glowing inside the chamber, solemn and shrine-like sci-fi atmosphere, the key visual is the glowing chip preserved within the cracked glass chamber, no warm sunlight, no extra characters.",
+      "video_prompt": "From this exact image moment, the robot slowly reaches toward the cracked storage chamber while the chamber and glowing chip become more visually dominant. Let the camera make a restrained, reverent push-in toward the chip. Keep the motion minimal and solemn. No extra characters.",
+      "negative_constraints": [
+        "不要夸张爆炸特效",
+        "不要把机房做成神殿奇幻风",
+        "不要出现完好无损的新设备"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "prop_reference:PROP_02",
+        "location_anchor:LOC_03",
+        "setpiece_reference:SET_01"
+      ],
+      "audio": {
+        "audio_type": "voiceover",
+        "speaker_ref": "旁白",
+        "text": "塔没有自己醒来，是有人把一句话留在这里，等十三年后的某个听众。",
+        "usage_mode": "remotion_tts"
+      },
+      "sound_design": {
+        "sfx_notes": "继电器轻响，阿拾关节伺服放慢时的细小摩擦声。",
+        "ambience_notes": "机房深处持续低频嗡鸣，空间空旷而压抑。"
+      },
+      "lip_sync_required": false,
+      "subtitle_source": "audio_content"
+    },
+    {
+      "scene_id": "S_05",
+      "story_role": "reveal",
+      "summary": "芯片开始播放，人类母亲的留言在机房里响起，沉睡监视灯依次点亮。",
+      "duration_hint_sec": 5,
+      "subject_refs": ["CHAR_01", "PROP_02"],
+      "scene_asset_refs": ["LOC_03", "SET_01"],
+      "continuity_notes": [
+        "延续 S_04 机房与存储舱构图",
+        "监视灯逐步点亮是本场景关键变化"
+      ],
+      "shot_type": "medium",
+      "motion_intensity": "performance",
+      "generation_mode": "dialogue_native",
+      "image_prompt": "medium shot, the repair robot standing completely still beside the activated voice chip in an abandoned machine room, with cold white monitoring lights newly illuminated across the walls, floating dust visible in the light, and old children's doodles revealed behind the robot, lit by a mix of cold equipment light and soft reflected glow, intimate and restrained emotional sci-fi atmosphere, the key visual is the row of waking monitoring lights revealing dust and children's doodles, no extra speakers on screen.",
+      "video_prompt": "From this exact image moment, the monitoring lights continue waking up across the walls and the dust becomes more visible in the air while the robot remains nearly motionless. Use a gentle lateral drift or slow inward move to deepen the reveal. The character says exactly this line in Chinese: 「如果你还能听见，说明这座城市还活着。请替我告诉她，地球的海风是温暖的。」. Do not say any other words and do not speak any other language. Keep the performance intimate and emotionally restrained. No extra speakers on screen.",
+      "negative_constraints": [
+        "不要额外插入哭泣人物",
+        "不要把儿童涂鸦画成恐怖元素",
+        "不要夸大镜头运动"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "prop_reference:PROP_02",
+        "location_anchor:LOC_03",
+        "setpiece_reference:SET_01"
+      ],
+      "audio": {
+        "audio_type": "dialogue",
+        "speaker_ref": "人类母亲录音",
+        "text": "如果你还能听见，说明这座城市还活着。请替我告诉她，地球的海风是温暖的。",
+        "usage_mode": "kling_voice"
+      },
+      "sound_design": {
+        "sfx_notes": "插槽卡入声，设备逐级上电声，旧录音底噪与轻微呼吸停顿。",
+        "ambience_notes": "机房底噪仍在，但被逐步点亮的设备声层层抬起。"
+      },
+      "lip_sync_required": true,
+      "subtitle_source": "dialogue_alignment"
+    },
+    {
+      "scene_id": "S_06",
+      "story_role": "payoff",
+      "summary": "阿拾把广播信号接回城市主网，整座城市的天幕灯带开始逐层苏醒。",
+      "duration_hint_sec": 4,
+      "subject_refs": ["CHAR_01", "ENV_02"],
+      "scene_asset_refs": ["LOC_04"],
+      "continuity_notes": [
+        "剧情进入从个人发现到城市响应的扩张阶段",
+        "灯带点亮状态后续必须延续到结尾"
+      ],
+      "shot_type": "wide",
+      "motion_intensity": "active",
+      "generation_mode": "video_first",
+      "image_prompt": "wide shot, the repair robot fixed at a control interface on a high central bridge in a vast undersea city, with canopy light bands already visible across the bridge, surrounding buildings, and dome structure, seen in a deep-perspective urban environment under cold aquatic light and large-scale industrial geometry, majestic but controlled sci-fi atmosphere, the key visual is the city-wide light band awakening spreading outward from the robot's position, no crowds, no daylight surface view, no celebratory fireworks.",
+      "video_prompt": "From this exact image moment, the repaired signal propagates farther outward and the canopy light bands spread across more of the city. Use a slow pullback or a rising crane-like camera move to reveal the scale of the awakening city while keeping the robot as the origin point of the change. No crowds or celebratory fireworks.",
+      "negative_constraints": [
+        "不要人群庆典",
+        "不要烟花或爆炸光效",
+        "不要露出阳光海面"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "environment_anchor:ENV_02",
+        "location_anchor:LOC_04"
+      ],
+      "audio": {
+        "audio_type": "voiceover",
+        "speaker_ref": "旁白",
+        "text": "它原本只想修好一座塔，却意外替一整座城市接回了记忆。",
+        "usage_mode": "remotion_tts"
+      },
+      "sound_design": {
+        "sfx_notes": "主网接通信号音，远处设施成片重启的低鸣，桥面轻微震动。",
+        "ambience_notes": "海底城市底噪由沉寂转为稳定运转的连续环境声。"
+      },
+      "lip_sync_required": false,
+      "subtitle_source": "audio_content"
+    },
+    {
+      "scene_id": "S_07",
+      "story_role": "ending",
+      "summary": "阿拾望着重新亮起的居民窗灯，轻声复述“海风是温暖的”。",
+      "duration_hint_sec": 4,
+      "subject_refs": ["CHAR_01", "PROP_01"],
+      "scene_asset_refs": ["LOC_04"],
+      "continuity_notes": [
+        "延续 S_06 的城市已点亮状态",
+        "阿拾情绪从调查转为安静接纳"
+      ],
+      "shot_type": "medium_close",
+      "motion_intensity": "performance",
+      "generation_mode": "dialogue_native",
+      "image_prompt": "medium close shot, the repair robot standing quietly behind bridge glass and looking outward while a spherical helper drone hovers nearby, with distant residential windows forming a soft web of light in the deep-sea city beyond, lit by gentle reflected city glow and softened underwater ambience, intimate and tender sci-fi atmosphere, the key visual is the quiet robot framed against the warm web of distant window lights, no melodrama, no exaggerated crying.",
+      "video_prompt": "From this exact image moment, the helper drone drifts in a slow circle and the robot makes only minimal movement before speaking. Use a gentle side drift or slow push toward the robot to preserve emotional quiet. The character says exactly this line in Chinese: 「海风是温暖的。好，我会替你告诉她。」. Do not say any other words and do not speak any other language. No dramatic gestures.",
+      "negative_constraints": [
+        "不要夸张哭戏",
+        "不要大幅肢体表演",
+        "不要加入其他角色打断情绪"
+      ],
+      "reference_requirements": [
+        "character_reference:CHAR_01",
+        "character_reference:PROP_01",
+        "location_anchor:LOC_04"
+      ],
+      "audio": {
+        "audio_type": "dialogue",
+        "speaker_ref": "维修机器人阿拾",
+        "text": "海风是温暖的。好，我会替你告诉她。",
+        "usage_mode": "kling_voice"
+      },
+      "sound_design": {
+        "sfx_notes": "窗灯继电器轻响，小泡旋翼柔和盘旋声。",
+        "ambience_notes": "城市底噪已经稳定，深海环境声变得更柔和。"
+      },
+      "lip_sync_required": true,
+      "subtitle_source": "dialogue_alignment"
+    },
+    {
+      "scene_id": "S_08",
+      "story_role": "ending",
+      "summary": "深海远景中，广播塔与城市天幕同时发光，整座城市像一封终于被读出的信。",
+      "duration_hint_sec": 3,
+      "subject_refs": ["ENV_01", "ENV_02"],
+      "scene_asset_refs": ["LOC_05"],
+      "continuity_notes": [
+        "结尾必须延续城市已苏醒状态",
+        "广播塔红灯不再孤立，而是成为城市整体发光的一部分"
+      ],
+      "shot_type": "extreme_wide",
+      "motion_intensity": "subtle",
+      "generation_mode": "video_first",
+      "image_prompt": "extreme wide shot, the abandoned broadcast tower and the glowing undersea city seen together in a vast deep-sea environment, with floating particles suspended in cold blue water and the once-lonely red tower light now integrated into the city's larger glow, lit by gentle city illumination against surrounding darkness, spacious and poetic closing atmosphere, the key visual is the tower red light no longer isolated but absorbed into the living city, no extra characters, no surface sunlight.",
+      "video_prompt": "From this exact image moment, the floating particles drift slowly across the frame while the camera makes a nearly imperceptible pullback, letting the glowing city and tower settle into calm equilibrium. Keep motion minimal and serene. No extra characters. No surface sunlight.",
+      "negative_constraints": [
+        "不要热闹收尾",
+        "不要额外角色近景",
+        "不要暖色日出效果"
+      ],
+      "reference_requirements": [
+        "environment_anchor:ENV_01",
+        "environment_anchor:ENV_02",
+        "location_anchor:LOC_05"
+      ],
+      "audio": {
+        "audio_type": "voiceover",
+        "speaker_ref": "旁白",
+        "text": "有些广播不是为了被很多人听见，只是为了终于抵达一个愿意记住的人。",
+        "usage_mode": "remotion_tts"
+      },
+      "sound_design": {
+        "sfx_notes": "远处稳定运行的城市机械嗡鸣保持克制。",
+        "ambience_notes": "低缓海流声与深海静默感收束全片。"
+      },
+      "lip_sync_required": false,
+      "subtitle_source": "audio_content"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Image"
+  short_description: "Create or transform images via MagicLight API"
+  default_prompt: "Use $generate-img to generate or transform an image with the MagicLight API."

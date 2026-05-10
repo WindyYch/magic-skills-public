@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Asset Visualizer"
+  short_description: "Render asset DAG and manifest results into an HTML scene viewer"
+  default_prompt: "Use $video-asset-visualizer to turn asset-dag.json and asset-manifest.json into an HTML viewer that shows reference assets first and then groups each scene's text, keyframe, audio, and video."

@@ -1,0 +1,284 @@
+{
+  "project_id": "tennis-kids-anime",
+  "execution_stages": ["P0", "P1", "P2", "P3", "P4"],
+  "tasks": [
+    {
+      "task_id": "T_CHAR_XZ",
+      "stage": "P0",
+      "task_type": "character_reference",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "prompt": "3D anime reference portrait of Xiao Zhi, a spirited boy tennis player with short black hair, bright determined eyes, a red headband, white tennis jersey, blue shorts, and red wristbands. Neutral full-body pose, clean studio backdrop, clear face and outfit details for downstream reuse.",
+        "aspect_ratio": "2:3",
+        "subject_refs": ["REF_XZ"]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["CHAR_XZ_REF"]
+    },
+    {
+      "task_id": "T_CHAR_XY",
+      "stage": "P0",
+      "task_type": "character_reference",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "prompt": "3D anime reference portrait of Xiao Yong, a calm boy tennis player with neatly parted dark hair, focused eyes, a white visor, white and green tennis uniform, and clean athletic silhouette. Neutral full-body pose, clean studio backdrop, clear face and outfit details for downstream reuse.",
+        "aspect_ratio": "2:3",
+        "subject_refs": ["REF_XY"]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["CHAR_XY_REF"]
+    },
+    {
+      "task_id": "T_PROP_BALL",
+      "stage": "P0",
+      "task_type": "keyframe_image",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "prompt": "Clean product-style reference image of a bright yellow tennis ball with crisp fuzzy texture, centered composition, neutral light-gray backdrop, easy to isolate for downstream visual reuse.",
+        "aspect_ratio": "1:1",
+        "subject_refs": ["REF_BALL"],
+        "reference_requirements": ["Reusable key prop reference for match scenes."]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["PROP_BALL_REF"]
+    },
+    {
+      "task_id": "T_TTS_S01",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "generate-tts",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_01",
+        "speaker": "narrator",
+        "language": "zh-CN",
+        "text": "清晨的球场上，小智和小勇第一次在训练赛前正面相遇，空气里全是即将开战的紧张感。"
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VO_S01"]
+    },
+    {
+      "task_id": "T_TTS_S02",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "generate-tts",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_02",
+        "speaker": "narrator",
+        "language": "zh-CN",
+        "text": "发球抛起的瞬间，整个世界像被拉成慢镜头，只剩球拍与网前的呼吸声。"
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VO_S02"]
+    },
+    {
+      "task_id": "T_TTS_S03",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "generate-tts",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_03",
+        "speaker": "narrator",
+        "language": "zh-CN",
+        "text": "小智猛冲上前，而小勇在底线稳稳压住节奏，这一球把两人的风格彻底拉开。"
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VO_S03"]
+    },
+    {
+      "task_id": "T_TTS_S04",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "generate-tts",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_04",
+        "speaker": "narrator",
+        "language": "zh-CN",
+        "text": "最激烈的回合里，两人的动作像被并列展开，速度、力量和判断在同一秒钟碰撞。"
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VO_S04"]
+    },
+    {
+      "task_id": "T_IMG_S01",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_01",
+        "prompt": "Wide establishing shot of a school tennis court at sunrise, Xiao Zhi and Xiao Yong facing each other across the net before the training match begins, empty bleachers, cool morning mist, long shadows, bright anime cinematic lighting.",
+        "aspect_ratio": "16:9",
+        "subject_refs": ["REF_XZ", "REF_XY"]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["IMG_S01"]
+    },
+    {
+      "task_id": "T_IMG_S02",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_02",
+        "prompt": "Medium close-up of a tennis ball rising above Xiao Zhi's racket during the serve toss, tense shoulders, focused eyes, blurred net in the background, golden morning light catching the spinning ball.",
+        "aspect_ratio": "16:9",
+        "subject_refs": ["REF_XZ", "REF_BALL"]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["IMG_S02"]
+    },
+    {
+      "task_id": "T_IMG_S03",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "generate-img",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": [],
+      "params": {
+        "scene_id": "S_03",
+        "prompt": "Low-angle action frame of Xiao Zhi lunging forward near the net while Xiao Yong stays composed at the baseline, clay dust kicked up, stretched court lines, crisp anime sports energy, strong directional afternoon light.",
+        "aspect_ratio": "16:9",
+        "subject_refs": ["REF_XZ", "REF_XY", "REF_BALL"]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["IMG_S03"]
+    },
+    {
+      "task_id": "T_IMG_S04",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "imgs-to-img",
+      "input_refs": ["REF_XZ", "REF_XY", "REF_BALL"],
+      "reference_bindings": [
+        {
+          "ref_id": "REF_XZ",
+          "producer_task_id": "T_CHAR_XZ",
+          "expected_output_id": "CHAR_XZ_REF",
+          "asset_type": "reference_image",
+          "usage_role": "character",
+          "required": true
+        },
+        {
+          "ref_id": "REF_XY",
+          "producer_task_id": "T_CHAR_XY",
+          "expected_output_id": "CHAR_XY_REF",
+          "asset_type": "reference_image",
+          "usage_role": "character",
+          "required": true
+        },
+        {
+          "ref_id": "REF_BALL",
+          "producer_task_id": "T_PROP_BALL",
+          "expected_output_id": "PROP_BALL_REF",
+          "asset_type": "reference_image",
+          "usage_role": "prop",
+          "required": true
+        }
+      ],
+      "wait_for": ["T_CHAR_XZ", "T_CHAR_XY", "T_PROP_BALL"],
+      "params": {
+        "scene_id": "S_04",
+        "prompt": "3D anime style, dynamic split-screen composition of Xiao Zhi and Xiao Yong during the peak rally. One side shows Xiao Zhi sprinting aggressively toward the ball, the other shows Xiao Yong driving a powerful return. The tennis ball is clearly visible as the center of the exchange, speed streaks and court dust intensify the moment, outdoor school court background, bright high-contrast sports lighting.",
+        "aspect_ratio": "16:9",
+        "subject_refs": ["REF_XZ", "REF_XY", "REF_BALL"],
+        "reference_requirements": [
+          "Preserve Xiao Zhi's red headband, jersey colors, and facial features.",
+          "Preserve Xiao Yong's visor, uniform silhouette, and facial features.",
+          "Preserve the tennis ball's bright yellow color and readable fuzzy texture."
+        ]
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["IMG_S04"]
+    },
+    {
+      "task_id": "T_VID_S01",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "generate-video",
+      "input_refs": ["IMG_S01"],
+      "reference_bindings": [],
+      "wait_for": ["T_IMG_S01"],
+      "params": {
+        "scene_id": "S_01",
+        "prompt": "Slow cinematic push-in toward Xiao Zhi and Xiao Yong as they face each other across the net, slight movement in their posture and uniforms, soft morning breeze moving through the court fencing.",
+        "duration_sec": 4
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VID_S01"]
+    },
+    {
+      "task_id": "T_VID_S02",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "generate-video",
+      "input_refs": ["IMG_S02"],
+      "reference_bindings": [],
+      "wait_for": ["T_IMG_S02"],
+      "params": {
+        "scene_id": "S_02",
+        "prompt": "The tossed tennis ball rotates in the air as Xiao Zhi begins the serve motion, camera tracking upward with the ball before dropping with the racket swing.",
+        "duration_sec": 4
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VID_S02"]
+    },
+    {
+      "task_id": "T_VID_S04",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "generate-video",
+      "input_refs": ["IMG_S04"],
+      "reference_bindings": [],
+      "wait_for": ["T_IMG_S04"],
+      "params": {
+        "scene_id": "S_04",
+        "prompt": "The split-screen rally bursts into motion as Xiao Zhi accelerates, Xiao Yong swings through the return, and the tennis ball streaks between both sides of the frame while the camera adds quick lateral motion.",
+        "duration_sec": 5
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["VID_S04"]
+    },
+    {
+      "task_id": "T_BGM_MAIN",
+      "stage": "P4",
+      "task_type": "bgm",
+      "tool": "bgm_generator",
+      "input_refs": [],
+      "reference_bindings": [],
+      "wait_for": ["T_TTS_S01", "T_TTS_S02", "T_TTS_S03", "T_TTS_S04"],
+      "params": {
+        "prompt": "Energetic anime sports background music with rising tension, youthful drive, and clean rhythmic momentum for a tennis match montage.",
+        "duration_sec": 22
+      },
+      "dynamic_params": {},
+      "expected_outputs": ["BGM_MAIN"]
+    }
+  ]
+}

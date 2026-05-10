@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Video"
+  short_description: "Create image-to-video clips via MagicLight API"
+  default_prompt: "Use $generate-video to generate an image-to-video clip with the MagicLight API."

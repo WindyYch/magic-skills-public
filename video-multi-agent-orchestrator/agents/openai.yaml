@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Multi-Agent Orchestrator"
+  short_description: "Plan a main-agent plus three-child-agent collaboration model for AI video production"
+  default_prompt: "Use $video-multi-agent-orchestrator to assign video-production-planner to the main agent, map directing, asset generation, and editing child agents to the right skills, and define file ownership and dispatch order."

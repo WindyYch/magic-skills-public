@@ -1,0 +1,164 @@
+{
+  "project_id": "tennis-kids-anime",
+  "status": "success",
+  "tasks": [
+    {
+      "task_id": "T_CHAR_XZ",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["CHAR_XZ_REF"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_CHAR_XY",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["CHAR_XY_REF"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_PROP_BALL",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["PROP_BALL_REF"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_TTS_S01",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VO_S01"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_TTS_S02",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VO_S02"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_TTS_S03",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VO_S03"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_TTS_S04",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VO_S04"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_IMG_S01",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["IMG_S01"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_IMG_S02",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["IMG_S02"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_IMG_S03",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["IMG_S03"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_IMG_S04",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["IMG_S04"],
+      "emitted_dynamic_values": {
+        "consumed_reference_asset_ids": ["CHAR_XZ_REF", "CHAR_XY_REF", "PROP_BALL_REF"]
+      }
+    },
+    {
+      "task_id": "T_VID_S01",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VID_S01"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_VID_S02",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VID_S02"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_VID_S04",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["VID_S04"],
+      "emitted_dynamic_values": {}
+    },
+    {
+      "task_id": "T_BGM_MAIN",
+      "status": "success",
+      "attempts": 1,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": ["BGM_MAIN"],
+      "emitted_dynamic_values": {}
+    }
+  ],
+  "retry_state": {
+    "dynamic_values": {},
+    "completed_task_ids": [
+      "T_CHAR_XZ",
+      "T_CHAR_XY",
+      "T_PROP_BALL",
+      "T_TTS_S01",
+      "T_TTS_S02",
+      "T_TTS_S03",
+      "T_TTS_S04",
+      "T_IMG_S01",
+      "T_IMG_S02",
+      "T_IMG_S03",
+      "T_IMG_S04",
+      "T_VID_S01",
+      "T_VID_S02",
+      "T_VID_S04",
+      "T_BGM_MAIN"
+    ],
+    "blocked_task_ids": []
+  }
+}
