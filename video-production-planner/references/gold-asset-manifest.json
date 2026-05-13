@@ -3,77 +3,92 @@
     {
       "id": "CHAR_XZ_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001001/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_CHAR_XZ"
     },
     {
       "id": "CHAR_XY_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001002/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_CHAR_XY"
     },
     {
       "id": "PROP_BALL_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001003/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_PROP_BALL"
     },
     {
       "id": "VO_S01",
       "url": "https://example.com/audio/vo_s01.mp3",
-      "type": "narration_audio"
+      "type": "narration_audio",
+      "task_id": "T_TTS_S01"
     },
     {
       "id": "VO_S02",
       "url": "https://example.com/audio/vo_s02.mp3",
-      "type": "narration_audio"
+      "type": "narration_audio",
+      "task_id": "T_TTS_S02"
     },
     {
       "id": "VO_S03",
       "url": "https://example.com/audio/vo_s03.mp3",
-      "type": "narration_audio"
+      "type": "narration_audio",
+      "task_id": "T_TTS_S03"
     },
     {
       "id": "VO_S04",
       "url": "https://example.com/audio/vo_s04.mp3",
-      "type": "narration_audio"
+      "type": "narration_audio",
+      "task_id": "T_TTS_S04"
     },
     {
       "id": "IMG_S01",
       "url": "https://images.magiclight.ai/open-task/1888000000002001/0.png",
-      "type": "keyframe_image"
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S01"
     },
     {
       "id": "IMG_S02",
       "url": "https://images.magiclight.ai/open-task/1888000000002002/0.png",
-      "type": "keyframe_image"
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S02"
     },
     {
       "id": "IMG_S03",
       "url": "https://images.magiclight.ai/open-task/1888000000002003/0.png",
-      "type": "keyframe_image"
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S03"
     },
     {
       "id": "IMG_S04",
       "url": "https://images.magiclight.ai/open-task/1888000000002004/0.png",
-      "type": "keyframe_image"
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S04"
     },
     {
       "id": "VID_S01",
       "url": "https://i2v.magiclight.ai/2888000000003001/2888000000003001_a1b2c3.mp4",
-      "type": "video_clip"
+      "type": "video_clip",
+      "task_id": "T_VID_S01"
     },
     {
       "id": "VID_S02",
       "url": "https://i2v.magiclight.ai/2888000000003002/2888000000003002_d4e5f6.mp4",
-      "type": "video_clip"
+      "type": "video_clip",
+      "task_id": "T_VID_S02"
     },
     {
       "id": "VID_S04",
       "url": "https://i2v.magiclight.ai/2888000000003004/2888000000003004_g7h8i9.mp4",
-      "type": "video_clip"
+      "type": "video_clip",
+      "task_id": "T_VID_S04"
     },
     {
       "id": "BGM_MAIN",
       "url": "https://example.com/audio/bgm_main.mp3",
-      "type": "bgm"
+      "type": "bgm",
+      "task_id": "T_BGM_MAIN"
     }
   ]
 }

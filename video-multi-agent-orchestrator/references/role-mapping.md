@@ -13,8 +13,8 @@ Use this reference when the workflow should run as:
 |---|---|---|---|
 | Main agent | `video-production-planner` | `video-qa`, `video-asset-visualizer` | global planning, dispatch, blocker handling, final acceptance |
 | Director child | `video-writer`, `video-storyboard` | `video-director`, `video-art-director`, `video-sound-designer` | story, scene intent, cinematic guidance, storyboard truth |
-| Asset generation child | `video-asset-dag`, `video-asset-executor` | `generate-tts`, `generate-img`, `imgs-to-img`, `generate-video` | execution planning and concrete media generation |
-| Editor child | `video-editor` | `video-subtitle-alignment`, `video-remotion-renderer` | edit truth, subtitle alignment, render assembly |
+| Asset generation child | `video-asset-dag`, `video-asset-executor` | `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music` | execution planning and concrete media generation |
+| Editor child | `video-editor` | `video-subtitle-alignment`, `magicclaw-compose-video` | edit truth, subtitle alignment, cloud composition assembly |
 
 ## 2. Why These Optional Skills Belong Here
 
@@ -38,14 +38,16 @@ Use this reference when the workflow should run as:
 
 ### Asset generation child optional skills
 
-- `generate-tts`
+- `magicclaw-generate-tts`
   - concrete helper for `voiceover_tts`
-- `generate-img`
+- `magicclaw-generate-img`
   - concrete helper for plain references and stills
-- `imgs-to-img`
+- `magicclaw-imgs-to-img`
   - concrete helper for ref-conditioned keyframes
-- `generate-video`
+- `magicclaw-generate-video`
   - concrete helper for scene motion assets
+- `magicclaw-generate-music`
+  - concrete helper for generated BGM/music assets
 
 These helpers belong under the asset generation child because they are execution tools, not planning tools.
 
@@ -53,8 +55,8 @@ These helpers belong under the asset generation child because they are execution
 
 - `video-subtitle-alignment`
   - belongs here because it refines timing truth for dialogue scenes
-- `video-remotion-renderer`
-  - belongs here because it assembles final render input and export from edit truth plus asset truth
+- `magicclaw-compose-video`
+  - belongs here because it assembles the canonical `video-orchestrator` payload and submits the final cloud composition task from edit truth plus asset truth
 
 ## 3. File Write Ownership
 
@@ -69,9 +71,8 @@ These helpers belong under the asset generation child because they are execution
 | `asset-manifest.json` | Asset generation child |
 | `run-report.json` | Asset generation child |
 | `subtitle-alignment.json` | Editor child |
-| `render-input.json` | Editor child |
-| `render-report.json` | Editor child |
-| `final.mp4` | Editor child |
+| `video-orchestrator-param.json` | Editor child |
+| `compose-video-result.json` | Editor child |
 | `qa_report` | Main agent |
 
 ## 4. Read Permissions
@@ -81,7 +82,7 @@ These helpers belong under the asset generation child because they are execution
 | Main agent | all protocol files |
 | Director child | `brief`, `video_spec`, `creator_context`, `story-script.md`, `direction-notes.md`, `storyboard.json` |
 | Asset generation child | `storyboard.json`, `edit-plan.json`, existing `asset-dag.json`, existing `asset-manifest.json`, existing `run-report.json` |
-| Editor child | `storyboard.json`, `edit-plan.json`, `asset-manifest.json`, `run-report.json`, `subtitle-alignment.json` when revising render |
+| Editor child | `storyboard.json`, `edit-plan.json`, `asset-manifest.json`, `run-report.json`, `subtitle-alignment.json` when revising composition |
 
 ## 5. Dispatch Order
 
@@ -107,7 +108,7 @@ These helpers belong under the asset generation child because they are execution
    - optional `video-asset-visualizer`
 6. Editor child:
    - `video-subtitle-alignment` when required
-   - `video-remotion-renderer` when render is requested
+   - `magicclaw-compose-video` when final composition is requested
 7. Main agent:
    - `video-qa`
    - decide accept, revise, or retry
@@ -118,9 +119,9 @@ These helpers belong under the asset generation child because they are execution
 |---|---|
 | story tone, scene intent, prompt framing | Director child |
 | visual continuity or sound intent before edit | Director child |
-| scene duration, source strategy, subtitle strategy, render hints | Editor child |
+| scene duration, source strategy, subtitle strategy, composition hints | Editor child |
 | missing refs, bad keyframes, failed TTS, failed generated clips, manifest truth | Asset generation child |
-| subtitle timing, render assembly, final export | Editor child |
+| subtitle timing, compose payload assembly, final video submission | Editor child |
 | cross-stage inconsistency or unclear ownership | Main agent |
 
 ## 7. Guardrails

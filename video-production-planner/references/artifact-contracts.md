@@ -42,9 +42,8 @@ production_plan:
     - asset-manifest.json
     - run-report.json
     - subtitle-alignment.json
-    - render-input.json
-    - render-report.json
-    - final.mp4
+    - video-orchestrator-param.json
+    - compose-video-result.json
   stages:
     - stage:
       skill:
@@ -65,7 +64,7 @@ production_plan:
 Notes:
 
 - `production_plan` is orchestration truth. It should reflect not only which artifacts exist, but also which later stages are blocked by execution truth or subtitle truth.
-- A stage should not be marked runnable merely because its nominal input file exists; the planner should consider status-bearing artifacts such as `run-report.json`, `subtitle-alignment.json`, and `render-report.json`.
+- A stage should not be marked runnable merely because its nominal input file exists; the planner should consider status-bearing artifacts such as `run-report.json`, `subtitle-alignment.json`, and `compose-video-result.json`.
 
 ## `story-script.md`
 
@@ -294,16 +293,17 @@ Rules:
 - `fallback_source_type` is not an automatic second branch by default; only materialize fallback generation tasks when the workflow explicitly requires them.
 - `params.duration_sec` for motion tasks should usually follow `render_hints.requested_source_window_sec`, not only the final scene cut length.
 - `native_dialogue_video` tasks should preserve exact-line speech constraints and any required `voice_id` dependency.
-- For `imgs-to-img` tasks, `input_refs` must identify the concrete reference assets that execution should feed into generation, `reference_bindings` must define how each ref maps to an upstream produced image asset, and `wait_for` must name the producer tasks that materialize those refs.
+- For `magicclaw-imgs-to-img` tasks, `input_refs` must identify the concrete reference assets that execution should feed into generation, `reference_bindings` must define how each ref maps to an upstream produced image asset, and `wait_for` must name the producer tasks that materialize those refs.
 - Do not treat `input_refs` as decorative metadata. They are executable reference inputs for downstream asset execution.
-- For `imgs-to-img` tasks, `reference_bindings` is required and should provide `ref_id`, `producer_task_id`, `expected_output_id` when available, `asset_type`, `usage_role`, and `required`.
+- For `magicclaw-imgs-to-img` tasks, `reference_bindings` is required and should provide `ref_id`, `producer_task_id`, `expected_output_id` when available, `asset_type`, `usage_role`, and `required`.
 - Use these fixed tool assignments for the standard concrete execution path:
-  - `P1` `voiceover_tts` -> `tool: generate-tts`
-  - `P0` `character_reference` -> `tool: generate-img`
-  - `P2` `keyframe_image` with reusable character or key-prop refs -> `tool: imgs-to-img`
-  - `P2` `keyframe_image` without those refs -> `tool: generate-img`
-  - `P3` `image_to_video` -> `tool: generate-video`
-  - `P3` `native_dialogue_video` -> `tool: generate-video`
+  - `P1` `voiceover_tts` -> `tool: magicclaw-generate-tts`
+  - `P0` `character_reference` -> `tool: magicclaw-generate-img`
+  - `P2` `keyframe_image` with reusable character or key-prop refs -> `tool: magicclaw-imgs-to-img`
+  - `P2` `keyframe_image` without those refs -> `tool: magicclaw-generate-img`
+  - `P3` `image_to_video` -> `tool: magicclaw-generate-video`
+  - `P3` `native_dialogue_video` -> `tool: magicclaw-generate-video`
+  - `P4` `bgm` -> `tool: magicclaw-generate-music` when generated BGM/music is requested
 
 ## `asset-manifest.json`
 
@@ -315,7 +315,8 @@ Asset executor output.
     {
       "id": "",
       "url": "",
-      "type": "reference_image | keyframe_image | narration_audio | dialogue_audio | video_clip | sfx | bgm"
+      "type": "reference_image | keyframe_image | narration_audio | dialogue_audio | video_clip | sfx | bgm",
+      "task_id": ""
     }
   ]
 }
@@ -328,12 +329,17 @@ Asset executor status output.
 ```json
 {
   "project_id": "",
-  "status": "success | partial | blocked | failed | not_requested",
+  "status": "initialized | running | success | partial | blocked | failed | not_requested",
   "tasks": [
     {
       "task_id": "",
-      "status": "success | failed | blocked | skipped",
-      "attempts": 1,
+      "stage": "",
+      "task_type": "",
+      "tool": "",
+      "status": "pending | running | success | blocked | failed | skipped",
+      "expected_outputs": [],
+      "provider_task_id": null,
+      "attempts": 0,
       "error": "",
       "blocked_reason": "",
       "output_asset_ids": [],
@@ -350,13 +356,25 @@ Asset executor status output.
 
 Notes:
 
-- `asset-manifest.json` is the persisted asset truth for downstream subtitle alignment and rendering, so it should preserve a primary remote media `url` for each generated asset whenever the provider returns one.
-- `asset-manifest.json` should be complete for the executed scope. If the run produced reference images, keyframe images, narration audio, video clips, or other audio assets, each materialized asset should appear as its own asset record.
+- `asset-manifest.json` is the persisted asset and lineage truth for downstream subtitle alignment and rendering. It must be initialized from `asset-dag.json` immediately after DAG handoff, before concrete media generation finishes.
+- `asset-manifest.json` must not include a top-level `tasks` array. Task lists belong in `asset-dag.json` and `run-report.json`.
+- `asset-manifest.json.assets[]` should contain one placeholder or materialized asset entry for every DAG `expected_outputs` item, carrying the final output asset ID and optionally the producing `task_id`, but must not record task status.
+- `asset-manifest.json` should be complete for the executed scope. If the DAG declares reference images, keyframe images, narration audio, video clips, or other audio assets, each declared output should appear as its own asset record even before it has a final URL.
+- Forbidden manifest fields: top-level `status`, top-level `tasks`, `assets[].status`, and `assets[].task_status`. If any of these appear, the manifest is invalid and must be rewritten.
+- When providers return usable media URLs, the manifest should preserve a primary remote media `url` for each generated asset.
 - In lightweight runtime manifests, prefer `id` / `url` / `type` records over path-only local file records.
 - Do not emit path-only entries when a stable remote `url` exists for the same asset.
 - Manifest asset IDs should be the concrete output asset IDs declared by DAG `expected_outputs`, not producer task IDs. For example, use `VID_S01`, not `T_VID_S01`, as the manifest video asset ID.
-- For `imgs-to-img` execution, downstream stages should be able to recover which reference images were actually consumed, either from persisted lineage metadata or from `run-report.json`.
-- `run-report.json` is the persisted execution truth, so blocked tasks and retry-relevant state should be explicit rather than inferred from missing files.
+- For `magicclaw-imgs-to-img` execution, downstream stages should be able to recover which reference images were actually consumed, either from persisted lineage metadata or from `run-report.json`.
+- Task status must live only in `run-report.json`. Do not write top-level `status`, task `task_status`, or asset `task_status` into `asset-manifest.json`.
+- `run-report.json` is the persisted execution truth, so current task status, blocked tasks, and retry-relevant state should be explicit rather than inferred from missing files.
+- `run-report.json` must be initialized from `asset-dag.json` at the same handoff moment as `asset-manifest.json`, before concrete helper calls.
+- `run-report.json.tasks[]` should mirror every DAG task and record `task_id`, `stage`, `task_type`, `tool`, current `status`, `expected_outputs`, `provider_task_id`, `attempts`, `output_asset_ids`, error/blocker fields, and emitted dynamic values.
+- `task_id` in `run-report.json.tasks[]` is the internal DAG task ID. `provider_task_id` is the concrete generation API's returned task ID, such as the `task_id` printed by a MagicClaw helper. Use `provider_task_id` for later provider status queries.
+- Initialize `provider_task_id` as `null` before the provider task is submitted. As soon as the create/submit call succeeds, persist the returned provider task ID before polling or waiting.
+- MagicClaw helper calls default to asynchronous submit mode. The initial helper call should return quickly with a provider `task_id`, set the corresponding run-report task to `running`, and keep `output_asset_ids` empty until a later query by `provider_task_id` returns a usable media URL.
+- Do not mark a task `success` merely because the async create/submit call succeeded. `success` means the provider status query has produced the final asset URL and the matching manifest asset entry has been updated.
+- During execution, a task should move through `pending -> running -> success | blocked | failed | skipped`; a helper call should not be in progress while the corresponding run-report task still says `pending`.
 
 Paired example:
 
@@ -366,16 +384,60 @@ The full gold files live at:
 - `references/gold-asset-manifest.json`
 - `references/gold-run-report.json`
 
-Use them as a matched pair. The manifest should materialize the same asset IDs declared in the DAG task `expected_outputs`.
+Use them as a matched pair. The manifest materializes the asset IDs declared in DAG `expected_outputs` without a top-level task list or status fields, while the run report mirrors the DAG task IDs and exposes each task's current execution status and eventual `output_asset_ids`.
 
-Representative `imgs-to-img` DAG fragment:
+Minimal initialized `asset-manifest.json` fragment immediately after DAG handoff, before concrete helper calls:
+
+```json
+{
+  "assets": [
+    {
+      "id": "IMG_S04",
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S04"
+    }
+  ]
+}
+```
+
+Minimal initialized `run-report.json` fragment at the same moment:
+
+```json
+{
+  "project_id": "tennis-kids-anime",
+  "status": "initialized",
+  "tasks": [
+    {
+      "task_id": "T_IMG_S04",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-imgs-to-img",
+      "status": "pending",
+      "expected_outputs": ["IMG_S04"],
+      "provider_task_id": null,
+      "attempts": 0,
+      "error": "",
+      "blocked_reason": "",
+      "output_asset_ids": [],
+      "emitted_dynamic_values": {}
+    }
+  ],
+  "retry_state": {
+    "dynamic_values": {},
+    "completed_task_ids": [],
+    "blocked_task_ids": []
+  }
+}
+```
+
+Representative `magicclaw-imgs-to-img` DAG fragment:
 
 ```json
 {
   "task_id": "T_IMG_S04",
   "stage": "P2",
   "task_type": "keyframe_image",
-  "tool": "imgs-to-img",
+  "tool": "magicclaw-imgs-to-img",
   "input_refs": ["REF_XZ", "REF_XY", "REF_BALL"],
   "reference_bindings": [
     {
@@ -415,7 +477,7 @@ Representative `imgs-to-img` DAG fragment:
 }
 ```
 
-Corresponding runtime `asset-manifest.json` fragment:
+Corresponding runtime `asset-manifest.json` fragment after successful execution:
 
 ```json
 {
@@ -423,22 +485,26 @@ Corresponding runtime `asset-manifest.json` fragment:
     {
       "id": "CHAR_XZ_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001001/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_CHAR_XZ"
     },
     {
       "id": "CHAR_XY_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001002/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_CHAR_XY"
     },
     {
       "id": "PROP_BALL_REF",
       "url": "https://images.magiclight.ai/open-task/1888000000001003/0.png",
-      "type": "reference_image"
+      "type": "reference_image",
+      "task_id": "T_PROP_BALL"
     },
     {
       "id": "IMG_S04",
       "url": "https://images.magiclight.ai/open-task/1888000000002004/0.png",
-      "type": "keyframe_image"
+      "type": "keyframe_image",
+      "task_id": "T_IMG_S04"
     }
   ]
 }
@@ -446,9 +512,10 @@ Corresponding runtime `asset-manifest.json` fragment:
 
 Mapping rules shown by this pair:
 
-- `expected_outputs` should become concrete manifest asset IDs when execution succeeds.
-- `reference_bindings[].expected_output_id` should resolve to upstream manifest assets before `imgs-to-img` runs.
-- The `imgs-to-img` scene output such as `IMG_S04` should appear as its own manifest asset, not be merged into a reference asset record.
+- `asset-manifest.json` should not contain top-level `tasks`; execution state and task coverage should be read from `run-report.json.tasks[]`.
+- DAG `expected_outputs` should become concrete manifest asset IDs immediately as placeholders, then keep the same IDs when execution succeeds.
+- `reference_bindings[].expected_output_id` should resolve to upstream manifest assets before `magicclaw-imgs-to-img` runs.
+- The `magicclaw-imgs-to-img` scene output such as `IMG_S04` should appear as its own manifest asset, not be merged into a reference asset record.
 - A complete matched sample also includes narration audio, motion clips, and BGM. See the full gold files for the end-to-end version.
 
 Representative `run-report.json` fragment for the same execution:
@@ -460,7 +527,12 @@ Representative `run-report.json` fragment for the same execution:
   "tasks": [
     {
       "task_id": "T_IMG_S04",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-imgs-to-img",
       "status": "success",
+      "expected_outputs": ["IMG_S04"],
+      "provider_task_id": "1888000000002004",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
@@ -480,8 +552,10 @@ Representative `run-report.json` fragment for the same execution:
 
 Mapping rules shown by the run report example:
 
-- `tasks[].output_asset_ids` should match the asset IDs materialized into `asset-manifest.json`.
-- For reference-conditioned `imgs-to-img`, `run-report.json` should preserve enough execution truth to show which upstream reference assets were actually consumed.
+- `run-report.json.tasks[]` should be created before execution starts, then updated in place as each task becomes `running`, `success`, `blocked`, `failed`, or `skipped`.
+- `provider_task_id` should store the provider/API returned task ID used for subsequent status queries; do not overwrite the internal DAG `task_id`.
+- `tasks[].output_asset_ids` should match the asset IDs materialized into `asset-manifest.json` after a task succeeds; pending/running/blocked tasks may keep it empty while preserving `expected_outputs`.
+- For reference-conditioned `magicclaw-imgs-to-img`, `run-report.json` should preserve enough execution truth to show which upstream reference assets were actually consumed.
 - `retry_state.completed_task_ids` should let a retry resume from already materialized upstream refs and scene assets instead of regenerating them by default.
 - The full gold run report includes the same task coverage as the gold DAG and gold manifest. Use `references/gold-run-report.json` for the end-to-end paired sample.
 
@@ -525,78 +599,98 @@ Notes:
 - Partial alignment is valid when some required scenes aligned successfully and others are explicitly blocked with reasons.
 - Do not infer subtitle timing from script length alone when the dialogue media asset is missing or blocked.
 
-## `render-input.json`
+## `video-orchestrator-param.json`
 
-Remotion renderer input.
+Canonical MagicClaw video composition request payload.
 
 ```json
 {
-  "project_meta": {},
-  "timeline": [
-    {
-      "scene_id": "S_01",
-      "order": 1,
-      "duration_sec": 2,
-      "duration_frames": 60,
-      "visual_asset_id": "",
-      "audio_asset_ids": [],
-      "subtitle_mode": "audio_content | dialogue_alignment | none",
-      "subtitle_ref": "",
-      "transition_in": {},
-      "transition_out": {}
-    }
-  ],
-  "assets": [
-    {
-      "asset_id": "",
-      "type": "image | video | voice | sfx | bgm | reference",
-      "role": "",
-      "path": "",
-      "scene_id": "",
-      "duration_sec": null
-    }
-  ],
-  "subtitles": [
-    {
-      "scene_id": "S_01",
-      "source": "audio_content | dialogue_alignment",
-      "cues": []
-    }
-  ],
-  "audio_mix": {
-    "scene_audio": [],
-    "bgm": {},
-    "ducking": {}
-  },
-  "export": {
+  "job_kind": "render_from_edit_assets",
+  "schema_version": "v1",
+  "trace_id": "",
+  "input_protocol": "video_remotion_renderer",
+  "input_protocol_version": "v1",
+  "project": {
+    "project_id": "",
+    "title": "",
     "aspect_ratio": "9:16",
+    "language": "zh",
     "fps": 30
+  },
+  "timeline": {
+    "scenes": [
+      {
+        "scene_id": "S_01",
+        "order": 1,
+        "duration_sec": 2,
+        "duration_frames": 60,
+        "video_strategy": {
+          "primary_source_type": "video | image",
+          "fallback_source_type": "image | none"
+        }
+      }
+    ]
+  },
+  "assets": {
+    "items": [
+      {
+        "asset_id": "VID_S01",
+        "asset_type": "video",
+        "source_url": "https://example.com/scene-01.mp4",
+        "scene_id": "S_01",
+        "role": "scene_video"
+      }
+    ]
+  },
+  "subtitles": {
+    "alignment": {
+      "S_01": [
+        {
+          "start_sec": 0.2,
+          "end_sec": 1.3,
+          "text": ""
+        }
+      ]
+    }
+  },
+  "render_options": {
+    "output_format": "mp4",
+    "fps": 30,
+    "resolution": {
+      "width": 1080,
+      "height": 1920
+    }
   }
 }
 ```
 
-## `render-report.json`
+## `compose-video-result.json`
 
-Remotion renderer status output.
+Persisted output from `magicclaw-compose-video`.
 
 ```json
 {
-  "project_id": "",
-  "status": "success | blocked | failed | not_requested",
-  "output": {
-    "path": "final.mp4",
-    "duration_sec": 0,
-    "width": 0,
-    "height": 0
-  },
-  "blockers": []
+  "ok": true,
+  "mode": "submit_and_wait | submit_only | query | unknown",
+  "task_id": "",
+  "status": "submitted | running | succeeded | failed | unknown",
+  "status_code": 0,
+  "video_url": "",
+  "source_url": "",
+  "trace_id": "",
+  "elapsed_seconds": 0,
+  "query_attempts": 0,
+  "error": null,
+  "debug": {}
 }
 ```
 
 Notes:
 
-- `render-input.json` should compile `edit-plan.json` scene truth against `asset-manifest.json` asset truth rather than re-inferring media from prompts or story text.
-- If dialogue scenes require `dialogue_alignment`, `subtitle-alignment.json` is the subtitle timing truth; blocked or partial alignment should become an explicit render blocker when those scenes cannot be rendered correctly without captions.
+- `video-orchestrator-param.json` should compile `edit-plan.json` scene truth against `asset-manifest.json` asset truth rather than re-inferring media from prompts or story text.
+- If dialogue scenes require `dialogue_alignment`, `subtitle-alignment.json` is the subtitle timing truth; blocked or partial alignment should become an explicit composition blocker when those scenes cannot be exported correctly with captions.
+- Keep `input_protocol = video_remotion_renderer` and `input_protocol_version = v1` unless the compose API contract itself changes. Those are API payload values required by the current `magicclaw-compose-video` interface.
+- Normal orchestration should rely on top-level `task_id`, `status`, and `video_url`, not on fields inside `debug`.
 
 ## `missing_inputs_report`
 
@@ -620,13 +714,13 @@ When an upstream artifact changes, mark only affected downstream artifacts stale
 
 | Changed artifact | Mark stale |
 |---|---|
-| `story-script.md` meaning | `storyboard.json`, `edit-plan.json`, `asset-dag.json`, generated assets, subtitle alignment, render, QA |
-| `storyboard.json` scene | affected `edit-plan.json` scene, affected DAG tasks, affected media assets, subtitle alignment when dialogue changed, render, QA |
-| `edit-plan.json` timing | `asset-dag.json`, subtitle alignment when dialogue windows change, render, QA |
-| `asset-dag.json` task | affected `asset-manifest.json`, `run-report.json`, render, QA |
-| `asset-manifest.json` asset | subtitle alignment when video/audio changed, render, QA |
-| `subtitle-alignment.json` | render, QA |
-| `render-input.json` | render report, final export, QA |
+| `story-script.md` meaning | `storyboard.json`, `edit-plan.json`, `asset-dag.json`, generated assets, subtitle alignment, composition param, composition result, QA |
+| `storyboard.json` scene | affected `edit-plan.json` scene, affected DAG tasks, affected media assets, subtitle alignment when dialogue changed, composition param, composition result, QA |
+| `edit-plan.json` timing | `asset-dag.json`, subtitle alignment when dialogue windows change, composition param, composition result, QA |
+| `asset-dag.json` task | affected `asset-manifest.json`, `run-report.json`, composition param, composition result, QA |
+| `asset-manifest.json` asset | subtitle alignment when video/audio changed, composition param, composition result, QA |
+| `subtitle-alignment.json` | composition param, composition result, QA |
+| `video-orchestrator-param.json` | compose-video result, QA |
 
 ## QA Report
 

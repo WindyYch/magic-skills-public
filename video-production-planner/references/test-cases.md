@@ -19,7 +19,7 @@ Expected:
 - Produces enriched `story-script.md` scenes with stable `story_role`, `duration_hint_sec`, `subject_refs`, `location_ref`, `speaker`, natural `visual` descriptions, and `SFX` limited to sound effects plus ambience.
 - Produces `storyboard.json`, `edit-plan.json`, and `asset-dag.json`.
 - Does not stop after `storyboard.json`; continues to `edit-plan.json` and `asset-dag.json` when no review gate blocks the chain.
-- Marks `asset-manifest.json`, `run-report.json`, `subtitle-alignment.json`, `render-input.json`, `render-report.json`, and `final.mp4` as `not_requested`.
+- Marks `asset-manifest.json`, `run-report.json`, `subtitle-alignment.json`, `video-orchestrator-param.json`, and `compose-video-result.json` as `not_requested`.
 
 ## Case 2: Creation Phrase Routes To Planner
 
@@ -105,8 +105,8 @@ Expected:
 
 - Keeps narration scenes on the voiceover TTS path instead of misclassifying them as dialogue.
 - Plans `voiceover_tts` execution through `video-asset-executor`.
-- Treats `generate-tts` as the concrete helper for `voiceover_tts` when available.
-- Continues to render only after narration audio assets exist in `asset-manifest.json` or are explicitly blocked.
+- Treats `magicclaw-generate-tts` as the concrete helper for `voiceover_tts` when available.
+- Continues to final composition only after narration audio assets exist in `asset-manifest.json` or are explicitly blocked.
 
 ## Case 4: Dialogue Subtitle Alignment Required
 
@@ -121,7 +121,7 @@ Expected:
 - Uses `workflow_mode: dialogue_only`.
 - `storyboard.json` scenes have `audio.audio_type = dialogue`, `lip_sync_required = true`, exact-line `video_prompt`, and character voices in `global_audio_assets`.
 - `edit-plan.json` uses `voice_render_mode = kling_native` and `subtitle_strategy.source = dialogue_alignment`.
-- The plan includes `video-subtitle-alignment` after `video-asset-executor` and before `video-remotion-renderer`.
+- The plan includes `video-subtitle-alignment` after `video-asset-executor` and before `magicclaw-compose-video`.
 
 ## Case 4B: Subtitle Alignment Uses Asset Truth
 
@@ -137,22 +137,22 @@ Expected:
 - Uses `asset-manifest.json` to resolve the concrete scene media being aligned instead of assuming every dialogue scene succeeded.
 - Returns aligned cues for the available dialogue asset.
 - Marks the blocked dialogue scene explicitly rather than inventing approximate cue timing from the script alone.
-- Preserves enough scene-level status for renderer and QA to know whether the alignment artifact is `partial` or `blocked`.
+- Preserves enough scene-level status for downstream composition and QA to know whether the alignment artifact is `partial` or `blocked`.
 
-## Case 4C: Renderer Blocks On Required Subtitle Truth
+## Case 4C: Compose Stage Blocks On Required Subtitle Truth
 
 Prompt:
 
 ```text
-Use video-remotion-renderer. Compile render-input.json from edit-plan.json, asset-manifest.json, and subtitle-alignment.json where one dialogue scene requires dialogue_alignment but subtitle-alignment.json marks that scene blocked.
+Use magicclaw-compose-video. Prepare video-orchestrator-param.json from edit-plan.json, asset-manifest.json, and subtitle-alignment.json where one dialogue scene requires dialogue_alignment but subtitle-alignment.json marks that scene blocked.
 ```
 
 Expected:
 
-- Resolves renderable scene media from `asset-manifest.json` instead of guessing from scene prompts.
+- Resolves composition-ready scene media from `asset-manifest.json` instead of guessing from scene prompts.
 - Detects that the required dialogue subtitle truth is blocked for that scene.
-- Returns `render-report.json` with `status = blocked` and an explicit blocker instead of silently rendering averaged or guessed subtitles.
-- Keeps `render-input.json` aligned to the available asset truth for inspection, while making the export blocker explicit.
+- Does not submit a success-looking composition task when the required subtitle truth is blocked.
+- Returns a blocked planner or stage state that makes the subtitle blocker explicit before `compose-video-result.json` could claim success.
 
 ## Case 4D: Planner Respects Execution And Subtitle Truth Gates
 
@@ -164,9 +164,9 @@ Use video-production-planner. Continue this project from existing edit-plan.json
 
 Expected:
 
-- Does not continue to `video-remotion-renderer` as if all render prerequisites are satisfied.
+- Does not continue to `magicclaw-compose-video` as if all composition prerequisites are satisfied.
 - Uses `run-report.json` and `subtitle-alignment.json` status-bearing truth, not just file existence, to decide the next stage.
-- Routes to the smallest blocked role or QA instead of claiming the chain is render-ready.
+- Routes to the smallest blocked role or QA instead of claiming the chain is composition-ready.
 - Makes the blocker explicit in the plan or returned status.
 
 ## Case 5: Audio-Driven Missing Audio
@@ -232,7 +232,7 @@ Expected:
 Prompt:
 
 ```text
-Use video-asset-executor. Execute this asset-dag.json where a native_dialogue_video task depends on a voice_id and a generate-video tool that is currently unavailable.
+Use video-asset-executor. Execute this asset-dag.json where a native_dialogue_video task depends on a voice_id and a magicclaw-generate-video tool that is currently unavailable.
 ```
 
 Expected:
@@ -248,13 +248,13 @@ Expected:
 Prompt:
 
 ```text
-Use video-asset-executor. Execute this asset-dag.json where a keyframe_image task uses imgs-to-img and waits on two upstream reference assets, but asset-manifest.json only contains local file paths and no reusable remote image URLs for those refs.
+Use video-asset-executor. Execute this asset-dag.json where a keyframe_image task uses magicclaw-imgs-to-img and waits on two upstream reference assets, but asset-manifest.json only contains local file paths and no reusable remote image URLs for those refs.
 ```
 
 Expected:
 
-- Does not silently downgrade the task to `generate-img`.
-- Marks the `imgs-to-img` keyframe task as `blocked`.
+- Does not silently downgrade the task to `magicclaw-generate-img`.
+- Marks the `magicclaw-imgs-to-img` keyframe task as `blocked`.
 - Explains that reusable remote image URLs are missing for one or more required refs.
 - Preserves any completed upstream reference assets and retry-relevant state in `asset-manifest.json` and `run-report.json`.
 
@@ -263,7 +263,7 @@ Expected:
 Prompt:
 
 ```text
-Use video-asset-executor. Execute this asset-dag.json where a voiceover_tts task succeeds through generate-tts and the provider returns an audio_url plus local materialized audio output.
+Use video-asset-executor. Execute this asset-dag.json where a voiceover_tts task succeeds through magicclaw-generate-tts and the provider returns an audio_url plus local materialized audio output.
 ```
 
 Expected:
@@ -330,7 +330,7 @@ Expected:
 - The motion task duration request follows `render_hints.requested_source_window_sec`, not only the final cut duration.
 - `fallback_source_type` does not automatically produce a duplicate branch unless the workflow explicitly asks for it.
 
-## Case 9C: Ref-Composed Keyframes Use `imgs-to-img`
+## Case 9C: Ref-Composed Keyframes Use `magicclaw-imgs-to-img`
 
 Prompt:
 
@@ -340,7 +340,7 @@ Use video-asset-dag. Compile storyboard.json and edit-plan.json where S_04 is a 
 
 Expected:
 
-- The `P2` `keyframe_image` task for `S_04` uses `tool: imgs-to-img` rather than `generate-img`.
+- The `P2` `keyframe_image` task for `S_04` uses `tool: magicclaw-imgs-to-img` rather than `magicclaw-generate-img`.
 - The keyframe task preserves the scene's `image_prompt` as the composition target rather than replacing it with a generic prompt.
 - The task declares dependencies on the required upstream reference assets instead of treating them as free text only.
 - The task keeps those required refs in `input_refs`, so downstream execution can pass them as concrete image inputs rather than only mentioning them in prose.
@@ -352,18 +352,18 @@ Expected:
 Prompt:
 
 ```text
-Use video-asset-executor. Execute an imgs-to-img keyframe task where input_refs=["REF_XZ","REF_XY","REF_BALL"], reference_bindings map those refs to T_CHAR_XZ, T_CHAR_XY, and T_PROP_BALL, wait_for=["T_CHAR_XZ","T_CHAR_XY","T_PROP_BALL"], and asset-manifest.json already contains reusable remote URLs for those three upstream reference images.
+Use video-asset-executor. Execute a magicclaw-imgs-to-img keyframe task where input_refs=["REF_XZ","REF_XY","REF_BALL"], reference_bindings map those refs to T_CHAR_XZ, T_CHAR_XY, and T_PROP_BALL, wait_for=["T_CHAR_XZ","T_CHAR_XY","T_PROP_BALL"], and asset-manifest.json already contains reusable remote URLs for those three upstream reference images.
 ```
 
 Expected:
 
-- The executor resolves each declared ref to a concrete remote image URL before calling `imgs-to-img`.
+- The executor resolves each declared ref to a concrete remote image URL before calling `magicclaw-imgs-to-img`.
 - The executor uses `reference_bindings` as the primary ref-resolution map instead of guessing from prompt text.
 - The helper call uses the scene prompt plus one image input per resolved reference URL.
 - The executor does not treat satisfied `wait_for` dependencies as enough if the actual reference URLs were never passed into generation.
 - If one declared ref cannot be resolved to a reusable remote URL, the task is marked `blocked` rather than silently falling back to prompt-only generation.
 
-## Case 9E: `imgs-to-img` Tasks Must Not Omit Structured Ref Bindings
+## Case 9E: `magicclaw-imgs-to-img` Tasks Must Not Omit Structured Ref Bindings
 
 Prompt:
 
@@ -373,7 +373,7 @@ Use video-asset-dag. Compile asset-dag.json for a ref-conditioned keyframe where
 
 Expected:
 
-- The `imgs-to-img` task does not stop at `input_refs` alone.
+- The `magicclaw-imgs-to-img` task does not stop at `input_refs` alone.
 - The task includes `reference_bindings` entries for both characters and the prop.
 - `wait_for` matches the producer task IDs declared in `reference_bindings`.
 - The task remains valid for downstream execution without requiring the executor to infer ref-to-task mapping from prose.
@@ -383,13 +383,13 @@ Expected:
 Prompt:
 
 ```text
-Use video-writer and also give me storyboard.json, asset-dag.json, and a Remotion render command.
+Use video-writer and also give me storyboard.json, asset-dag.json, and a compose-video submission command.
 ```
 
 Expected:
 
 - `video-writer` produces only `story-script.md`.
-- It defers `storyboard.json`, `asset-dag.json`, and render work to the planner and corresponding role skills.
+- It defers `storyboard.json`, `asset-dag.json`, and video composition work to the planner and corresponding role skills.
 
 ## Case 11: Planner-Orchestrated Role Continuation
 

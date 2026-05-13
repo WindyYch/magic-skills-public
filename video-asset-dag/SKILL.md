@@ -5,7 +5,7 @@ version: 1.1.0
 metadata:
   hermes:
     tags: [creative, video, asset-dag, media-generation, dag]
-    related_skills: [video-production-planner, video-storyboard, video-editor, video-asset-executor, generate-tts, generate-img, imgs-to-img, generate-video]
+    related_skills: [video-production-planner, video-storyboard, video-editor, video-asset-executor, magicclaw-generate-tts, magicclaw-generate-img, magicclaw-imgs-to-img, magicclaw-generate-video, magicclaw-generate-music]
 ---
 
 # AI Video Asset DAG Compiler
@@ -26,7 +26,7 @@ When `video-production-planner` loads this skill with `orchestration_mode: plann
 
 ## Role Boundary
 
-The asset DAG compiler owns execution planning: task ordering, task dependencies, tool assignment, generation parameters, dynamic parameter wiring, and expected outputs. It compiles storyboard prompts together with edit-plan execution truth. It declares which tasks should use concrete tools such as `generate-img`, `imgs-to-img`, and `generate-video`, but it does not execute those tools, write actual media, align subtitles, edit the timeline, or render exports.
+The asset DAG compiler owns execution planning: task ordering, task dependencies, tool assignment, generation parameters, dynamic parameter wiring, and expected outputs. It compiles storyboard prompts together with edit-plan execution truth. It declares which tasks should use concrete tools such as `magicclaw-generate-img`, `magicclaw-imgs-to-img`, and `magicclaw-generate-video`, but it does not execute those tools, write actual media, align subtitles, edit the timeline, or render exports.
 
 ## Inputs
 
@@ -89,11 +89,11 @@ Required shape:
 
 | Stage | Meaning | Common tasks |
 |---|---|---|
-| `P0` | Global Anchors | conditional character references, reusable location or screen references when needed, `voice_profile_create`; character reference image tasks use `tool: generate-img` |
+| `P0` | Global Anchors | conditional character references, reusable location or screen references when needed, `voice_profile_create`; character reference image tasks use `tool: magicclaw-generate-img` |
 | `P1` | Scene Audio | voiceover TTS, dialogue voice preparation when needed |
-| `P2` | Scene Keyframes | scene keyframes and reference-conditioned stills; scene keyframe image tasks use `tool: imgs-to-img` when recurring character or key-prop refs must be visibly preserved, otherwise `tool: generate-img` |
-| `P3` | Motion Assets | image-to-video or native dialogue scene clips; scene video tasks use `tool: generate-video` |
-| `P4` | Supplemental Audio | SFX and BGM |
+| `P2` | Scene Keyframes | scene keyframes and reference-conditioned stills; scene keyframe image tasks use `tool: magicclaw-imgs-to-img` when recurring character or key-prop refs must be visibly preserved, otherwise `tool: magicclaw-generate-img` |
+| `P3` | Motion Assets | image-to-video or native dialogue scene clips; scene video tasks use `tool: magicclaw-generate-video` |
+| `P4` | Supplemental Audio | SFX and BGM; generated BGM/music tasks use `tool: magicclaw-generate-music` when a concrete music helper is needed |
 
 ## Compilation Rules
 
@@ -108,19 +108,20 @@ Use `storyboard.json` as the source of truth:
 
 - If `global_assets` contains one or more recurring characters that scenes reference through `subject_refs`, `asset-dag.json` should include `P0` character reference tasks for those characters.
 - If `storyboard.json` has no characters in `global_assets`, or scenes do not reference any recurring character identities, do not invent character reference tasks.
-- Character reference tasks should be `task_type: character_reference` and use `tool: generate-img`.
+- Character reference tasks should be `task_type: character_reference` and use `tool: magicclaw-generate-img`.
 - Scene keyframes that depend on recurring characters should wait for the relevant character reference tasks before generating scene images.
 
 ## Tool Assignment Rules
 
 For the standard concrete execution path, use these fixed assignments:
 
-- `P1` `voiceover_tts` tasks: `tool: generate-tts`
-- `P0` `character_reference` tasks: `tool: generate-img`
-- `P2` `keyframe_image` tasks with reusable character or key-prop refs: `tool: imgs-to-img`
-- `P2` `keyframe_image` tasks without those refs: `tool: generate-img`
-- `P3` `image_to_video` tasks: `tool: generate-video`
-- `P3` `native_dialogue_video` tasks: `tool: generate-video`
+- `P1` `voiceover_tts` tasks: `tool: magicclaw-generate-tts`
+- `P0` `character_reference` tasks: `tool: magicclaw-generate-img`
+- `P2` `keyframe_image` tasks with reusable character or key-prop refs: `tool: magicclaw-imgs-to-img`
+- `P2` `keyframe_image` tasks without those refs: `tool: magicclaw-generate-img`
+- `P3` `image_to_video` tasks: `tool: magicclaw-generate-video`
+- `P3` `native_dialogue_video` tasks: `tool: magicclaw-generate-video`
+- `P4` `bgm` tasks: `tool: magicclaw-generate-music` when generated BGM/music is requested
 
 Do not drift these fixed task types to other tool names unless the user explicitly changes the execution backend or the workflow is not using the standard concrete execution path.
 
@@ -129,7 +130,7 @@ Do not drift these fixed task types to other tool names unless the user explicit
 - `primary_source_type` determines the main executable branch for each scene:
   - `generated_image` means the scene's deliverable asset is normally the `P2` keyframe result
   - `generated_video` means the scene must produce a `P3` motion asset
-  - `user_image` means use provided still media as the scene source and do not invent a `generate-img` task unless a derived keyframe is explicitly required
+  - `user_image` means use provided still media as the scene source and do not invent a `magicclaw-generate-img` task unless a derived keyframe is explicitly required
   - `user_video` means use provided video as the scene source and do not invent a generation task for that scene unless a derived asset is explicitly required
   - `none` means no scene media generation task should be created
 - `motion_treatment` refines the branch choice:
@@ -142,10 +143,10 @@ Do not drift these fixed task types to other tool names unless the user explicit
 ## Dependency Rules
 
 - A scene keyframe that uses character and scene references must wait for both references.
-- If a `keyframe_image` must visibly preserve recurring character refs from `subject_refs` or key-prop refs from `scene_asset_refs` / `reference_requirements`, compile it as a reference-conditioned keyframe and use `tool: imgs-to-img` instead of plain `generate-img`.
-- For `imgs-to-img` keyframes, `input_refs` is executable input, not commentary. It should list the exact reference asset refs that downstream execution must feed into the generation call.
-- For `imgs-to-img` keyframes, also emit structured `reference_bindings` entries so execution does not need to infer how refs map to upstream assets.
-- For `imgs-to-img` keyframes, `wait_for` should include the producer tasks that materialize those refs, so execution can resolve each declared ref to a real upstream image asset before generation starts.
+- If a `keyframe_image` must visibly preserve recurring character refs from `subject_refs` or key-prop refs from `scene_asset_refs` / `reference_requirements`, compile it as a reference-conditioned keyframe and use `tool: magicclaw-imgs-to-img` instead of plain `magicclaw-generate-img`.
+- For `magicclaw-imgs-to-img` keyframes, `input_refs` is executable input, not commentary. It should list the exact reference asset refs that downstream execution must feed into the generation call.
+- For `magicclaw-imgs-to-img` keyframes, also emit structured `reference_bindings` entries so execution does not need to infer how refs map to upstream assets.
+- For `magicclaw-imgs-to-img` keyframes, `wait_for` should include the producer tasks that materialize those refs, so execution can resolve each declared ref to a real upstream image asset before generation starts.
 - A dialogue scene using `kling_native` must wait for required `voice_id` creation.
 - Scenes whose final source is `generated_image` may stop at keyframe/image outputs unless the edit plan explicitly requires motion.
 - Scenes whose final source is `generated_video` should generate motion assets even if the original storyboard began as `image_first`.
@@ -153,16 +154,16 @@ Do not drift these fixed task types to other tool names unless the user explicit
 - Motion assets must wait for keyframes when the video task uses generated or user-supplied images as the source.
 - `render_hints.requested_source_window_sec` should be copied into motion task params so downstream generation requests the right source clip length instead of the final edited cut length.
 - SFX and BGM can run after the timing source exists, unless the planner marks stricter dependencies.
-- A `generate-video` task must wait for a source image from user media or a prior `generate-img` or `imgs-to-img` task.
-- `P2` scene keyframes with reusable character or key-prop refs must use `tool: imgs-to-img`.
-- Other `P2` scene keyframes must use `tool: generate-img`.
-- `P3` scene videos must use `tool: generate-video`.
+- A `magicclaw-generate-video` task must wait for a source image from user media or a prior `magicclaw-generate-img` or `magicclaw-imgs-to-img` task.
+- `P2` scene keyframes with reusable character or key-prop refs must use `tool: magicclaw-imgs-to-img`.
+- Other `P2` scene keyframes must use `tool: magicclaw-generate-img`.
+- `P3` scene videos must use `tool: magicclaw-generate-video`.
 - Do not create `character_reference` tasks for one-off scenes that have no recurring character identity in `storyboard.json`.
 
 ## Audio Task Rules
 
 - If `audio_strategy.voice_render_mode = remotion_tts` and scene `audio.text` is non-empty, create a `P1` `voiceover_tts` task.
-- When `voiceover_tts` is used in the standard synchronous TTS path, prefer `tool: generate-tts`.
+- When `voiceover_tts` is used in the standard MagicClaw TTS path, prefer `tool: magicclaw-generate-tts`.
 - If `audio_strategy.voice_render_mode = kling_native` and the workflow needs a reusable speaker profile, create `P0` `voice_profile_create` before the scene's native dialogue video task.
 - Use `global_audio_plan.alignment_required_scene_ids` to identify which scenes must preserve native dialogue timing for later subtitle alignment. Do not create `subtitle-alignment.json` tasks here; create the media prerequisites for those scenes.
 - If `audio_strategy.use_scene_sound_design = true` and the scene has non-empty `sound_design.sfx_notes` or `sound_design.ambience_notes`, create `P4` `sfx` tasks only when the workflow expects generated supplemental sound instead of relying purely on in-video sound.
@@ -171,31 +172,31 @@ Do not drift these fixed task types to other tool names unless the user explicit
 ## Prompt And Param Rules
 
 - `keyframe_image` tasks should use the scene `image_prompt` plus relevant character, location, and reference constraints.
-- When `keyframe_image` uses `imgs-to-img`, keep the same image moment as the composition target and carry the required upstream reference asset IDs or refs in `input_refs` / task params so execution can resolve reusable remote image URLs.
-- For `imgs-to-img`, preserve enough linkage that execution can map each `input_refs` item to one concrete upstream reference image. Do not leave the task in a state where refs exist only in prose inside the prompt.
+- When `keyframe_image` uses `magicclaw-imgs-to-img`, keep the same image moment as the composition target and carry the required upstream reference asset IDs or refs in `input_refs` / task params so execution can resolve reusable remote image URLs.
+- For `magicclaw-imgs-to-img`, preserve enough linkage that execution can map each `input_refs` item to one concrete upstream reference image. Do not leave the task in a state where refs exist only in prose inside the prompt.
 - If the scene depends on multiple character or prop refs, keep all of them in `input_refs` so the executor can pass multiple reference images into one composed generation call.
-- For `imgs-to-img`, `reference_bindings` should be the machine-readable source of truth for ref resolution. Each binding should include:
+- For `magicclaw-imgs-to-img`, `reference_bindings` should be the machine-readable source of truth for ref resolution. Each binding should include:
   - `ref_id`: the storyboard/global asset ref such as `REF_XZ`
   - `producer_task_id`: the upstream task expected to materialize that ref such as `T_CHAR_XZ`
   - `expected_output_id`: the expected output asset id such as `CHAR_XZ_REF` or `PROP_BALL_REF` when available
   - `asset_type`: usually `reference_image`
   - `usage_role`: `character | prop | location | style_anchor | other`
   - `required`: `true | false`
-- Keep `input_refs` as the ordered compact list used by humans and quick checks, but do not rely on it alone when `tool: imgs-to-img`.
+- Keep `input_refs` as the ordered compact list used by humans and quick checks, but do not rely on it alone when `tool: magicclaw-imgs-to-img`.
 - `image_to_video` and `native_dialogue_video` tasks should use the scene `video_prompt` as the prompt base, not the still-image prompt alone.
 - Carry scene `negative_constraints`, `reference_requirements`, `subject_refs`, `scene_asset_refs`, and relevant continuity conditions into task params so execution does not lose asset consistency.
 - If `render_hints.continuity_direction` carries forward a state such as damage, wetness, props in hand, or screen content, preserve that state in the task params or prompt package for the affected scene.
 - `params.duration_sec` for generated motion tasks should normally come from `render_hints.requested_source_window_sec`, not the final `timeline.duration_sec`, because the source clip may need extra headroom for trimming.
 
-## `imgs-to-img` Task Schema
+## `magicclaw-imgs-to-img` Task Schema
 
-When a task uses `tool: imgs-to-img`, tighten the task shape as follows:
+When a task uses `tool: magicclaw-imgs-to-img`, tighten the task shape as follows:
 
 - `input_refs` is required and should preserve the intended reference order for generation input.
 - `reference_bindings` is required and should contain one entry per required ref.
 - `wait_for` must include every `producer_task_id` referenced by `reference_bindings`.
 - `params.subject_refs` should mirror the scene continuity refs, but `reference_bindings` remains the executable ref-resolution truth.
-- Do not emit an `imgs-to-img` task with only prompt text plus loose prose about refs.
+- Do not emit an `magicclaw-imgs-to-img` task with only prompt text plus loose prose about refs.
 
 Recommended shape:
 
@@ -204,7 +205,7 @@ Recommended shape:
   "task_id": "T_IMG_S04",
   "stage": "P2",
   "task_type": "keyframe_image",
-  "tool": "imgs-to-img",
+  "tool": "magicclaw-imgs-to-img",
   "input_refs": ["REF_XZ", "REF_XY", "REF_BALL"],
   "reference_bindings": [
     {
@@ -265,12 +266,13 @@ Before returning, check:
 - task selection respects scene `generation_mode` and the editor's final `primary_source_type`
 - `motion_treatment` and `requested_source_window_sec` were compiled into task choice and params rather than dropped
 - fallback source types were not expanded into unnecessary duplicate generation by default
-- `P0` `character_reference` tasks use `tool: generate-img`
-- `P1` `voiceover_tts` tasks use `tool: generate-tts` when the standard synchronous TTS path is selected
-- `P2` `keyframe_image` tasks with reusable character or key-prop refs use `tool: imgs-to-img`
-- `P2` `imgs-to-img` tasks declare concrete `input_refs`, structured `reference_bindings`, and matching producer dependencies rather than only a textual prompt
-- other `P2` `keyframe_image` tasks use `tool: generate-img`
-- `P3` `image_to_video` and `native_dialogue_video` tasks use `tool: generate-video`
+- `P0` `character_reference` tasks use `tool: magicclaw-generate-img`
+- `P1` `voiceover_tts` tasks use `tool: magicclaw-generate-tts` when the standard MagicClaw TTS path is selected
+- `P2` `keyframe_image` tasks with reusable character or key-prop refs use `tool: magicclaw-imgs-to-img`
+- `P2` `magicclaw-imgs-to-img` tasks declare concrete `input_refs`, structured `reference_bindings`, and matching producer dependencies rather than only a textual prompt
+- other `P2` `keyframe_image` tasks use `tool: magicclaw-generate-img`
+- `P3` `image_to_video` and `native_dialogue_video` tasks use `tool: magicclaw-generate-video`
+- `P4` generated `bgm` tasks use `tool: magicclaw-generate-music`
 - native dialogue tasks preserve exact-line speech constraints and alignment prerequisites
 - `P4` audio tasks reflect scene sound design and project BGM policy when those are enabled
 - no generation tool is executed inside the `asset-dag.json` artifact

@@ -4,139 +4,278 @@
   "tasks": [
     {
       "task_id": "T_CHAR_XZ",
+      "stage": "P0",
+      "task_type": "character_reference",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "CHAR_XZ_REF"
+      ],
+      "provider_task_id": "1888000000001001",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["CHAR_XZ_REF"],
+      "output_asset_ids": [
+        "CHAR_XZ_REF"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_CHAR_XY",
+      "stage": "P0",
+      "task_type": "character_reference",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "CHAR_XY_REF"
+      ],
+      "provider_task_id": "1888000000001002",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["CHAR_XY_REF"],
+      "output_asset_ids": [
+        "CHAR_XY_REF"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_PROP_BALL",
+      "stage": "P0",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "PROP_BALL_REF"
+      ],
+      "provider_task_id": "1888000000001003",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["PROP_BALL_REF"],
+      "output_asset_ids": [
+        "PROP_BALL_REF"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_TTS_S01",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "magicclaw-generate-tts",
       "status": "success",
+      "expected_outputs": [
+        "VO_S01"
+      ],
+      "provider_task_id": "1888000000001101",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VO_S01"],
+      "output_asset_ids": [
+        "VO_S01"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_TTS_S02",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "magicclaw-generate-tts",
       "status": "success",
+      "expected_outputs": [
+        "VO_S02"
+      ],
+      "provider_task_id": "1888000000001102",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VO_S02"],
+      "output_asset_ids": [
+        "VO_S02"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_TTS_S03",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "magicclaw-generate-tts",
       "status": "success",
+      "expected_outputs": [
+        "VO_S03"
+      ],
+      "provider_task_id": "1888000000001103",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VO_S03"],
+      "output_asset_ids": [
+        "VO_S03"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_TTS_S04",
+      "stage": "P1",
+      "task_type": "voiceover_tts",
+      "tool": "magicclaw-generate-tts",
       "status": "success",
+      "expected_outputs": [
+        "VO_S04"
+      ],
+      "provider_task_id": "1888000000001104",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VO_S04"],
+      "output_asset_ids": [
+        "VO_S04"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_IMG_S01",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "IMG_S01"
+      ],
+      "provider_task_id": "1888000000002001",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["IMG_S01"],
+      "output_asset_ids": [
+        "IMG_S01"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_IMG_S02",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "IMG_S02"
+      ],
+      "provider_task_id": "1888000000002002",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["IMG_S02"],
+      "output_asset_ids": [
+        "IMG_S02"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_IMG_S03",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-generate-img",
       "status": "success",
+      "expected_outputs": [
+        "IMG_S03"
+      ],
+      "provider_task_id": "1888000000002003",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["IMG_S03"],
+      "output_asset_ids": [
+        "IMG_S03"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_IMG_S04",
+      "stage": "P2",
+      "task_type": "keyframe_image",
+      "tool": "magicclaw-imgs-to-img",
       "status": "success",
+      "expected_outputs": [
+        "IMG_S04"
+      ],
+      "provider_task_id": "1888000000002004",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["IMG_S04"],
+      "output_asset_ids": [
+        "IMG_S04"
+      ],
       "emitted_dynamic_values": {
-        "consumed_reference_asset_ids": ["CHAR_XZ_REF", "CHAR_XY_REF", "PROP_BALL_REF"]
+        "consumed_reference_asset_ids": [
+          "CHAR_XZ_REF",
+          "CHAR_XY_REF",
+          "PROP_BALL_REF"
+        ]
       }
     },
     {
       "task_id": "T_VID_S01",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "magicclaw-generate-video",
       "status": "success",
+      "expected_outputs": [
+        "VID_S01"
+      ],
+      "provider_task_id": "2888000000003001",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VID_S01"],
+      "output_asset_ids": [
+        "VID_S01"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_VID_S02",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "magicclaw-generate-video",
       "status": "success",
+      "expected_outputs": [
+        "VID_S02"
+      ],
+      "provider_task_id": "2888000000003002",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VID_S02"],
+      "output_asset_ids": [
+        "VID_S02"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_VID_S04",
+      "stage": "P3",
+      "task_type": "image_to_video",
+      "tool": "magicclaw-generate-video",
       "status": "success",
+      "expected_outputs": [
+        "VID_S04"
+      ],
+      "provider_task_id": "2888000000003004",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["VID_S04"],
+      "output_asset_ids": [
+        "VID_S04"
+      ],
       "emitted_dynamic_values": {}
     },
     {
       "task_id": "T_BGM_MAIN",
+      "stage": "P4",
+      "task_type": "bgm",
+      "tool": "magicclaw-generate-music",
       "status": "success",
+      "expected_outputs": [
+        "BGM_MAIN"
+      ],
+      "provider_task_id": "1888000000004001",
       "attempts": 1,
       "error": "",
       "blocked_reason": "",
-      "output_asset_ids": ["BGM_MAIN"],
+      "output_asset_ids": [
+        "BGM_MAIN"
+      ],
       "emitted_dynamic_values": {}
     }
   ],

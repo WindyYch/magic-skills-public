@@ -18,22 +18,25 @@ creator_context
 -> storyboard_edit_review
 -> video-asset-dag           => asset-dag.json
                                asset-dag.json is the handoff point that declares:
-                               P1 voiceover_tts -> generate-tts
-                               P0 character_reference -> generate-img
-                               P2 keyframe_image with reusable character/key-prop refs -> imgs-to-img
-                               P2 keyframe_image without reusable refs -> generate-img
-                               P3 image_to_video -> generate-video
-                               P3 native_dialogue_video -> generate-video
+                               P1 voiceover_tts -> magicclaw-generate-tts
+                               P0 character_reference -> magicclaw-generate-img
+                               P2 keyframe_image with reusable character/key-prop refs -> magicclaw-imgs-to-img
+                               P2 keyframe_image without reusable refs -> magicclaw-generate-img
+                               P3 image_to_video -> magicclaw-generate-video
+                               P3 native_dialogue_video -> magicclaw-generate-video
+                               P4 generated bgm/music -> magicclaw-generate-music
 -> video-asset-executor      => asset-manifest.json + run-report.json
                                asset-manifest.json is the asset truth
                                run-report.json is the execution truth
-                               uses generate-tts for voiceover_tts assets when needed
-                               uses imgs-to-img for reference-conditioned keyframes when needed
-                               uses generate-img for still/reference assets when needed
-                               uses generate-video for image-to-video clips when needed
+                               uses magicclaw-generate-tts for voiceover_tts assets when needed
+                               uses magicclaw-imgs-to-img for reference-conditioned keyframes when needed
+                               uses magicclaw-generate-img for still/reference assets when needed
+                               uses magicclaw-generate-video for image-to-video clips when needed
+                               uses magicclaw-generate-music for generated BGM/music when needed
 -> video-subtitle-alignment  => subtitle-alignment.json when required
                                subtitle-alignment.json is the dialogue subtitle truth
--> video-remotion-renderer   => render-input.json + render-report.json + final.mp4
+-> magicclaw-compose-video   => video-orchestrator-param.json + compose-video-result.json
+                               compose-video-result.json is the final composition truth
 -> video-qa
 -> final_review
 ```
@@ -52,7 +55,7 @@ creator_context
 | `asset-dag.json` only | `video-asset-dag` |
 | Execute assets from DAG | `video-asset-executor` |
 | Align native dialogue subtitles | `video-subtitle-alignment` |
-| Render final video | `video-subtitle-alignment` when required -> `video-remotion-renderer` -> `video-qa` |
+| Compose final video | `video-subtitle-alignment` when required -> `magicclaw-compose-video` -> `video-qa` |
 | Review existing plan or export | `video-qa` |
 
 For direct-stage tasks, do not load unrelated role skills.
@@ -67,8 +70,8 @@ story-script.md voiceover scenes
 -> edit-plan.json with voice_render_mode=remotion_tts
 -> asset-dag.json
 -> asset-manifest.json with narration audio materialized by `voiceover_tts` execution
--> render-input.json
--> final.mp4
+-> video-orchestrator-param.json
+-> compose-video-result.json
 ```
 
 Rules:
@@ -77,8 +80,8 @@ Rules:
 - `lip_sync_required = false`.
 - `subtitle-alignment.json` is normally skipped.
 - Voiceover subtitle timing can follow TTS duration and text.
-- When concrete voiceover audio is executed, `voiceover_tts` tasks should normally use `generate-tts`.
-- `P2` scene keyframes with reusable character or key-prop refs should use `imgs-to-img`; other `P2` scene keyframes may use `generate-img` before any `P3` `generate-video` clip task starts.
+- When concrete voiceover audio is executed, `voiceover_tts` tasks should normally use `magicclaw-generate-tts`.
+- `P2` scene keyframes with reusable character or key-prop refs should use `magicclaw-imgs-to-img`; other `P2` scene keyframes may use `magicclaw-generate-img` before any `P3` `magicclaw-generate-video` clip task starts. Generated BGM/music tasks should use `magicclaw-generate-music` when requested.
 
 ### `dialogue_only`
 
@@ -89,8 +92,8 @@ story-script.md dialogue scenes
 -> asset-dag.json with voice_profile_create tasks
 -> asset-manifest.json with voice_id values
 -> subtitle-alignment.json
--> render-input.json
--> final.mp4
+-> video-orchestrator-param.json
+-> compose-video-result.json
 ```
 
 Rules:
@@ -98,8 +101,8 @@ Rules:
 - Repeated speaking characters must be in `global_audio_assets`.
 - Dialogue scenes require exact-line video prompts.
 - Dialogue subtitles must use `subtitle-alignment.json`.
-- If required subtitle alignment is `blocked`, render is also blocked unless the user explicitly accepts a subtitle-free export.
-- If dialogue clips are image-to-video, the source still must already exist from user media or a `P2` `generate-img` / `imgs-to-img` task.
+- If required subtitle alignment is `blocked`, final composition is also blocked unless the user explicitly accepts a subtitle-free export.
+- If dialogue clips are image-to-video, the source still must already exist from user media or a `P2` `magicclaw-generate-img` / `magicclaw-imgs-to-img` task.
 
 ### `mixed`
 
@@ -116,7 +119,7 @@ Rules:
 - Voiceover and dialogue must not compete in the same scene unless the user explicitly asks for overlap.
 - BGM must duck under voiceover and native dialogue.
 - Only scenes whose subtitle source is `dialogue_alignment` enter subtitle alignment.
-- A blocked required dialogue-alignment scene blocks final render unless the user approves an exception.
+- A blocked required dialogue-alignment scene blocks final composition unless the user approves an exception.
 
 ## Execution Truth Gates
 
@@ -128,9 +131,9 @@ After `video-asset-executor`:
 
 After `video-subtitle-alignment`:
 
-- `status = success` means render may continue.
-- `status = partial` may continue only when blocked scenes do not require rendered subtitles.
-- `status = blocked` prevents render when dialogue-alignment scenes still require subtitles.
+- `status = success` means final composition may continue.
+- `status = partial` may continue only when blocked scenes do not require composed subtitles.
+- `status = blocked` prevents final composition when dialogue-alignment scenes still require subtitles.
 
 ## Audio-Driven Video
 
@@ -145,7 +148,7 @@ script_or_audio_direction
 -> video-asset-dag
 -> video-asset-executor
 -> video-subtitle-alignment when native dialogue exists
--> video-remotion-renderer
+-> magicclaw-compose-video
 -> video-qa
 ```
 
@@ -155,7 +158,7 @@ Video generation must not start without:
 - `storyboard.json`
 - `edit-plan.json`
 - `asset-dag.json`
-- any required source still for `generate-video`
+- any required source still for `magicclaw-generate-video`
 
 If audio is missing, return `missing_inputs_report` from `artifact-contracts.md`.
 
@@ -172,7 +175,7 @@ qa_report
 ```
 
 Mark later outputs as `not_requested`. Do not call image, video, audio, subtitle alignment, render, or export tools.
-That includes `generate-tts`, `generate-img`, `imgs-to-img`, and `generate-video`.
+That includes `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, and `magicclaw-generate-music`.
 
 ## Revision Mode
 
@@ -180,15 +183,15 @@ Route revisions to the smallest affected artifact:
 
 | User change | Revision role | Mark stale |
 |---|---|---|
-| Story meaning changes | `video-writer` | storyboard, edit plan, DAG, assets, subtitle alignment, render, QA |
-| One scene action changes | `video-storyboard` | affected edit-plan scene, DAG tasks, media assets, subtitle alignment if dialogue changed, render, QA |
-| Character, scene, visual style, or prompt changes | `video-art-director` | affected storyboard visual fields, DAG tasks, generated visuals, render, QA |
-| Voice, dialogue usage, music, or SFX changes | `video-sound-designer` | storyboard audio fields, edit-plan audio strategy, DAG, audio assets, subtitle alignment, render, QA |
-| Duration, primary/fallback source, subtitle source, or transition changes | `video-editor` | DAG, render, QA |
-| Asset task changes | `video-asset-dag` | manifest, report, render, QA |
-| Generated media changes | `video-asset-executor` | subtitle alignment when needed, render, QA |
-| Dialogue alignment changes | `video-subtitle-alignment` | render, QA |
-| Render settings change | `video-remotion-renderer` | render report, final video, QA |
+| Story meaning changes | `video-writer` | storyboard, edit plan, DAG, assets, subtitle alignment, composition, QA |
+| One scene action changes | `video-storyboard` | affected edit-plan scene, DAG tasks, media assets, subtitle alignment if dialogue changed, composition, QA |
+| Character, scene, visual style, or prompt changes | `video-art-director` | affected storyboard visual fields, DAG tasks, generated visuals, composition, QA |
+| Voice, dialogue usage, music, or SFX changes | `video-sound-designer` | storyboard audio fields, edit-plan audio strategy, DAG, audio assets, subtitle alignment, composition, QA |
+| Duration, primary/fallback source, subtitle source, or transition changes | `video-editor` | DAG, composition, QA |
+| Asset task changes | `video-asset-dag` | manifest, report, composition, QA |
+| Generated media changes | `video-asset-executor` | subtitle alignment when needed, composition, QA |
+| Dialogue alignment changes | `video-subtitle-alignment` | composition, QA |
+| Composition settings change | `magicclaw-compose-video` | compose param, compose result, QA |
 | QA blocker only | target role from `qa_report.revision_tasks` | affected downstream artifacts |
 
 Do not restart the full project when a scene-level revision is enough.

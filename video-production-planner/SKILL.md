@@ -14,12 +14,13 @@ metadata:
       - video-editor
       - video-asset-dag
       - video-asset-executor
-      - generate-tts
-      - generate-img
-      - imgs-to-img
-      - generate-video
+      - magicclaw-generate-tts
+      - magicclaw-generate-img
+      - magicclaw-imgs-to-img
+      - magicclaw-generate-video
+      - magicclaw-generate-music
       - video-subtitle-alignment
-      - video-remotion-renderer
+      - magicclaw-compose-video
       - video-qa
 ---
 
@@ -33,16 +34,16 @@ The planner is the only dispatcher. Role skills do not call each other. Role ski
 
 When the user asks for a full video, load role skills only when their stage is reached. When the user asks for one stage, load only the required role skill.
 
-Do not perform writer, director, storyboard, art, sound, editor, asset DAG, asset execution, subtitle alignment, Remotion render, or QA work until the corresponding role skill has been loaded. If a stage needs external media generation but no concrete tool is available, produce the protocol artifact and stop before the external action.
+Do not perform writer, director, storyboard, art, sound, editor, asset DAG, asset execution, subtitle alignment, video composition submit/poll, or QA work until the corresponding role skill has been loaded. If a stage needs external media generation but no concrete tool is available, produce the protocol artifact and stop before the external action.
 
-Concrete media helpers do not replace protocol stages. When execution reaches concrete media generation and Hermes has the relevant helper skills installed, route that work through `video-asset-executor`, which may use `generate-tts` for `voiceover_tts` assets, `generate-img` for plain still/reference images, `imgs-to-img` for reference-conditioned keyframes that must visibly preserve character or key-prop refs, and `generate-video` for motion clips.
+Concrete media helpers do not replace protocol stages. When execution reaches concrete media generation and Hermes has the relevant helper skills installed, route that work through `video-asset-executor`, which may use `magicclaw-generate-tts` for `voiceover_tts` assets, `magicclaw-generate-img` for plain still/reference images, `magicclaw-imgs-to-img` for reference-conditioned keyframes that must visibly preserve character or key-prop refs, `magicclaw-generate-video` for motion clips, and `magicclaw-generate-music` for generated BGM/music.
 
 The planner must respect persisted stage truth, not optimistic assumptions:
 
-- `asset-manifest.json` is the asset truth for anything downstream of execution.
-- `run-report.json` is the execution truth for whether execution succeeded, partially succeeded, or is blocked.
+- `asset-manifest.json` is the asset truth for anything downstream of `asset-dag.json`. It must exist immediately after the DAG handoff, before concrete media tools finish, with asset entries for declared outputs, but no top-level task list and no task status fields.
+- `run-report.json` is the execution truth for whether each task is pending, running, succeeded, partially succeeded, blocked, failed, or skipped.
 - `subtitle-alignment.json` is the subtitle timing truth for dialogue scenes that require alignment.
-- `render-report.json` is the render truth; do not infer render success from the existence of `render-input.json` alone.
+- `compose-video-result.json` is the composition truth; do not infer composition success from the existence of `video-orchestrator-param.json` alone.
 
 ## Orchestration Modes
 
@@ -81,9 +82,8 @@ asset-dag.json
 asset-manifest.json
 run-report.json
 subtitle-alignment.json
-render-input.json
-render-report.json
-final.mp4
+video-orchestrator-param.json
+compose-video-result.json
 ```
 
 The middle chain must stay stable:
@@ -96,7 +96,7 @@ brief
 -> asset-dag.json
 -> asset-manifest.json + run-report.json
 -> subtitle-alignment.json when dialogue alignment is required
--> render-input.json + render-report.json + final.mp4
+-> video-orchestrator-param.json + compose-video-result.json
 -> qa_report
 ```
 
@@ -125,9 +125,9 @@ Load only the reference needed for the current decision:
 | Sound protocol review | `video-sound-designer` | `global_audio_assets`, scene audio fields, audio strategy patch |
 | Edit planning | `video-editor` | `edit-plan.json` |
 | Asset DAG | `video-asset-dag` | `asset-dag.json` |
-| Asset execution | `video-asset-executor` | `asset-manifest.json`, `run-report.json`, complete media assets; may use `generate-tts`, `generate-img`, `imgs-to-img`, and `generate-video` when concrete helpers are available |
+| Asset execution | `video-asset-executor` | `asset-manifest.json`, `run-report.json`, complete media assets; may use `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, and `magicclaw-generate-music` when concrete helpers are available |
 | Subtitle alignment | `video-subtitle-alignment` | `subtitle-alignment.json` |
-| Remotion render | `video-remotion-renderer` | `render-input.json`, `render-report.json`, `final.mp4` |
+| Video composition | `magicclaw-compose-video` | `video-orchestrator-param.json`, `compose-video-result.json` |
 | QA | `video-qa` | `qa_report`, `revision_tasks` |
 
 ## Standard Full Video Flow
@@ -146,12 +146,12 @@ For a full AI short film:
 10. **REQUIRED ROLE SKILL:** load `video-editor` to compile `storyboard.json` into `edit-plan.json`.
 11. Pause for storyboard/edit review unless the user explicitly said no review and no missing-input risk exists.
 12. **REQUIRED ROLE SKILL:** load `video-asset-dag` to compile `storyboard.json + edit-plan.json` into `asset-dag.json`.
-13. If media generation is requested, treat completed `asset-dag.json` as the execution handoff point: the DAG should declare concrete execution tasks such as `voiceover_tts`, still/keyframe generation, and dependent motion clips. When MiniMax TTS is the concrete voice helper, `voiceover_tts` should route through `generate-tts`. When a `keyframe_image` must visibly preserve recurring character or key-prop refs, it should route through `imgs-to-img` instead of plain `generate-img`.
-14. **REQUIRED ROLE SKILL WHEN EXECUTING MEDIA:** load `video-asset-executor` to read `asset-dag.json`, execute those tasks, and write `asset-manifest.json + run-report.json`. `asset-manifest.json` should default to a complete runtime asset list with first-class remote `url` fields for generated images, audio, and video whenever providers return stable URLs. In concrete execution paths, this may call `generate-tts`, `generate-img`, `imgs-to-img`, and `generate-video`.
-15. After asset execution, inspect `run-report.json` and `asset-manifest.json`. If execution is `blocked` or render-critical outputs are missing, do not continue to subtitle alignment or render as if media exists; route to QA or return the blocker state.
+13. If media generation is requested, treat completed `asset-dag.json` as the execution handoff point: the DAG should declare concrete execution tasks such as `voiceover_tts`, still/keyframe generation, dependent motion clips, and generated BGM when requested. Immediately after this handoff, before any concrete media helper is called, `video-asset-executor` must initialize both `asset-manifest.json` and `run-report.json` from the DAG. The manifest records only asset entries for declared outputs, optionally including producing `task_id` as lineage, but never a top-level `tasks` array; the run report records each DAG `task_id`, `tool`, `expected_outputs`, `status: pending`, `attempts: 0`, and `provider_task_id: null`. When MagicClaw TTS is the concrete voice helper, `voiceover_tts` should route through `magicclaw-generate-tts`. When a `keyframe_image` must visibly preserve recurring character or key-prop refs, it should route through `magicclaw-imgs-to-img` instead of plain `magicclaw-generate-img`.
+14. **REQUIRED ROLE SKILL WHEN EXECUTING MEDIA:** load `video-asset-executor` to read `asset-dag.json`, initialize `asset-manifest.json + run-report.json`, execute those tasks, update asset facts in the manifest, and update task status only in the run report. `asset-manifest.json` should default to a complete runtime asset list with final asset IDs, optional producing `task_id`, and first-class remote `url` fields for generated images, audio, and video whenever providers return stable URLs. `run-report.json` should default to a complete runtime task list with current per-task `status`, `attempts`, provider/API returned `provider_task_id`, `output_asset_ids`, blocker/error fields, and retry state. In concrete execution paths, this may call `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, and `magicclaw-generate-music`.
+15. After asset execution, inspect `run-report.json` and `asset-manifest.json`. If execution is `blocked` or composition-critical outputs are missing, do not continue to subtitle alignment or final composition as if media exists; route to QA or return the blocker state.
 16. **CONDITIONAL ROLE SKILL:** load `video-subtitle-alignment` when `edit-plan.json` marks one or more scenes with `subtitle_strategy.source = dialogue_alignment` or lists them in `global_audio_plan.alignment_required_scene_ids`.
-17. If `subtitle-alignment.json` is required but returns `blocked` or blocks any required dialogue scene, do not continue to final render unless the user explicitly accepts a subtitle-free export.
-18. **REQUIRED ROLE SKILL WHEN RENDERING:** load `video-remotion-renderer` only when render is requested and the available asset truth plus required subtitle truth are sufficient to build a valid export.
+17. If `subtitle-alignment.json` is required but returns `blocked` or blocks any required dialogue scene, do not continue to final composition unless the user explicitly accepts a subtitle-free export.
+18. **REQUIRED ROLE SKILL WHEN COMPOSING FINAL VIDEO:** load `magicclaw-compose-video` only when final composition is requested and the available asset truth plus required subtitle truth are sufficient to build a valid `video-orchestrator` submission. The caller must first prepare canonical `video-orchestrator-param.json` with `job_kind = render_from_edit_assets`, `schema_version`, `project`, `timeline.scenes`, `assets.items`, optional subtitle alignment payload, and `render_options`. Keep `input_protocol = video_remotion_renderer` and `input_protocol_version = v1` inside the canonical param unless the compose API contract changes, because those are payload fields expected by the current `magicclaw-compose-video` interface, not a signal to route back to any older local-render stage. Persist the submit/query result as `compose-video-result.json` and treat its top-level `task_id`, `status`, and `video_url` as the composition truth.
 19. **REQUIRED ROLE SKILL:** load `video-qa` before final approval.
 
 ## Direct Mode
@@ -169,28 +169,29 @@ If the user asks for only one output, choose the smallest valid chain:
 | Edit plan only | `video-editor` |
 | Asset DAG only | `video-asset-dag` |
 | Execute assets from DAG | `video-asset-executor` |
-| Generate a still reference or keyframe only | `generate-img` or `imgs-to-img` depending on reference needs |
-| Animate an existing still into a clip | `generate-video` |
+| Generate a still reference or keyframe only | `magicclaw-generate-img` or `magicclaw-imgs-to-img` depending on reference needs |
+| Animate an existing still into a clip | `magicclaw-generate-video` |
 | Align dialogue subtitles | `video-subtitle-alignment` |
-| Render from manifest and edit plan | `video-subtitle-alignment` when required, then `video-remotion-renderer`, then `video-qa` |
+| Compose final video from manifest and edit plan | `video-subtitle-alignment` when required, then `magicclaw-compose-video`, then `video-qa` |
 | QA an existing plan or export | `video-qa` |
 
 ## Hard Dependencies
 
 Do not start a stage when its required input is missing. Load `references/artifact-contracts.md` for the missing-input report shape.
 
-For `dialogue_only` or `mixed` projects using native dialogue video, subtitle alignment is required after asset execution and before render. Do not let Remotion renderer average dialogue subtitles across a scene.
+For `dialogue_only` or `mixed` projects using native dialogue video, subtitle alignment is required after asset execution and before final composition. Do not let downstream composition average dialogue subtitles across a scene.
 
-For rendering:
+For final composition:
 
 - `edit-plan.json` is necessary but not sufficient.
-- `asset-manifest.json` must contain renderable scene assets for every required timeline scene.
-- `run-report.json` must not leave required render assets in a blocked or failed state.
+- `asset-manifest.json` must contain composition-ready scene assets for every required timeline scene.
+- `run-report.json` must not leave required composition assets in a blocked or failed state.
 - when a scene requires `dialogue_alignment`, `subtitle-alignment.json` must provide usable subtitle truth for that scene or an explicit user-approved exception must exist.
+- `video-orchestrator-param.json` must be assembled from current edit truth, asset truth, and subtitle truth before `magicclaw-compose-video` is called.
 
 For audio-driven video, audio must be prepared before video generation. Load `references/workflow-variants.md` for the audio-driven flow.
 
-For image-to-video execution, `generate-video` requires a source image. The source may come from user-provided art or from a prior `generate-img` or `imgs-to-img` output referenced in `asset-manifest.json`.
+For image-to-video execution, `magicclaw-generate-video` requires a source image. The source may come from user-provided art or from a prior `magicclaw-generate-img` or `magicclaw-imgs-to-img` output referenced in `asset-manifest.json`.
 
 ## Plan Output
 
@@ -211,9 +212,8 @@ production_plan:
     - asset-manifest.json
     - run-report.json
     - subtitle-alignment.json
-    - render-input.json
-    - render-report.json
-    - final.mp4
+    - video-orchestrator-param.json
+    - compose-video-result.json
   stages:
     - stage: story_script
       skill: video-writer
@@ -229,16 +229,16 @@ production_plan:
       requires: [storyboard.json, edit-plan.json, asset-manifest.json]
       when: one or more scenes require subtitle_strategy.source = dialogue_alignment
       if_missing: return missing_inputs_report
-    - target: render-input.json
+    - target: video-orchestrator-param.json
       requires: [edit-plan.json, asset-manifest.json]
       when: generation_policy is render_final
       if_missing: return missing_inputs_report
-    - target: render-input.json
+    - target: video-orchestrator-param.json
       requires: [edit-plan.json, asset-manifest.json, subtitle-alignment.json]
       when: generation_policy is render_final and one or more scenes require subtitle_strategy.source = dialogue_alignment
       if_missing: return missing_inputs_report
-    - target: final.mp4
-      requires: [render-input.json, render-report.json]
+    - target: compose-video-result.json
+      requires: [video-orchestrator-param.json]
       when: generation_policy is render_final
       if_missing: return missing_inputs_report
   skipped_stages:

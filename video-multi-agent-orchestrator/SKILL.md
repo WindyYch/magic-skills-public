@@ -15,12 +15,13 @@ metadata:
       - video-editor
       - video-asset-dag
       - video-asset-executor
-      - generate-tts
-      - generate-img
-      - imgs-to-img
-      - generate-video
+      - magicclaw-generate-tts
+      - magicclaw-generate-img
+      - magicclaw-imgs-to-img
+      - magicclaw-generate-video
+      - magicclaw-generate-music
       - video-subtitle-alignment
-      - video-remotion-renderer
+      - magicclaw-compose-video
       - video-qa
       - video-asset-visualizer
 ---
@@ -60,10 +61,10 @@ Do not let the editor child directly rewrite story or asset truth.
   - optional craft: `video-director`, `video-art-director`, `video-sound-designer`
 - Asset generation child:
   - required core: `video-asset-dag`, `video-asset-executor`
-  - optional concrete helpers: `generate-tts`, `generate-img`, `imgs-to-img`, `generate-video`
+  - optional concrete helpers: `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music`
 - Editor child:
   - required core: `video-editor`
-  - optional finishing: `video-subtitle-alignment`, `video-remotion-renderer`
+  - optional finishing: `video-subtitle-alignment`, `magicclaw-compose-video`
 
 For the full ownership matrix, file write permissions, and dispatch templates, read:
 
@@ -77,7 +78,7 @@ For the full ownership matrix, file write permissions, and dispatch templates, r
 3. Main agent dispatches the editor child to produce `edit-plan.json`.
 4. Main agent dispatches the asset generation child to produce `asset-dag.json`, then execute it into `asset-manifest.json + run-report.json`.
 5. Main agent checks blockers and decides whether to retry, pause, or continue.
-6. When rendering is requested, main agent dispatches the editor child again for subtitle alignment and Remotion render stages.
+6. When final video composition is requested, main agent dispatches the editor child again for subtitle alignment and cloud composition stages.
 7. Main agent runs final QA or inspection before returning results to the user.
 
 ## Ownership Rules
@@ -101,6 +102,6 @@ Before using this orchestration mode, check:
 - the main agent still owns `video-production-planner`
 - the director child owns story and storyboard only
 - the asset generation child owns DAG plus execution only
-- the editor child owns timeline, alignment, and render only
+- the editor child owns timeline, alignment, and final composition assembly only
 - optional skills are attached to exactly one role in the role matrix
 - no protocol file has ambiguous write ownership
