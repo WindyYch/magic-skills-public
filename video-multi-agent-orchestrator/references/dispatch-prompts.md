@@ -146,7 +146,7 @@ Role:
 Required skills:
 - `video-asset-dag`
 - `video-asset-executor`
-- optional concrete helpers:
+- production concrete helpers:
   - `magicclaw-generate-tts`
   - `magicclaw-generate-img`
   - `magicclaw-imgs-to-img`
@@ -202,7 +202,7 @@ Role:
 
 Required skills:
 - optional `video-subtitle-alignment`
-- optional `magicclaw-compose-video`
+- `magicclaw-compose-video` when final composition is requested
 
 Required inputs:
 - `storyboard.json`

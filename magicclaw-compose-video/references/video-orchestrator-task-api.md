@@ -41,9 +41,11 @@ It sends:
 ```text
 Authorization: Bearer <token>
 Content-Type: application/json
+X-Trace-Id: <video_orchestrator_param_json.trace_id>
 ```
 
 If `MAGICCLAW_TASK_TOKEN` already starts with `Bearer `, the value is used as-is.
+For create requests, `X-Trace-Id` is always the same value as `video_orchestrator_param_json.trace_id`.
 
 ## Create Request Body
 
@@ -52,7 +54,6 @@ The script reads a canonical param object from `--video-orchestrator-param` and 
 ```json
 {
   "source": "magicclaw_compose_video",
-  "trace_id": "trace-...",
   "biz_callback_url": "https://example.com/callback",
   "biz_callback_extra_json": {
     "request_id": "req-123"
@@ -102,6 +103,7 @@ Trace ID:
 - If `--trace-id` is provided, the caller must ensure the value is unique.
 - If omitted, the script uses `video_orchestrator_param_json.trace_id`.
 - If both are omitted, the script auto-generates one as `trace-video-orchestrator-{12-char uuid}`.
+- The resolved trace ID is written only to `video_orchestrator_param_json.trace_id` in the request body and to the HTTP `X-Trace-Id` header.
 
 Canonical param requirements:
 

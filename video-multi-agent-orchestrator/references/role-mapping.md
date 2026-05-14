@@ -13,8 +13,10 @@ Use this reference when the workflow should run as:
 |---|---|---|---|
 | Main agent | `video-production-planner` | `video-qa`, `video-asset-visualizer` | global planning, dispatch, blocker handling, final acceptance |
 | Director child | `video-writer`, `video-storyboard` | `video-director`, `video-art-director`, `video-sound-designer` | story, scene intent, cinematic guidance, storyboard truth |
-| Asset generation child | `video-asset-dag`, `video-asset-executor` | `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music` | execution planning and concrete media generation |
-| Editor child | `video-editor` | `video-subtitle-alignment`, `magicclaw-compose-video` | edit truth, subtitle alignment, cloud composition assembly |
+| Asset generation child | `video-asset-dag`, `video-asset-executor` | `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music` for production presets | execution planning and concrete media generation |
+| Editor child | `video-editor` | `magicclaw-compose-video` for production presets; `video-subtitle-alignment` when subtitle timing is required | edit truth, subtitle alignment, cloud composition assembly |
+
+Production preset rule: if the product promise is real generated assets plus a final composed video, treat the MagicClaw concrete helpers and `magicclaw-compose-video` as required profile skills during profile bootstrap. They are optional only for planning-only or bring-your-own-assets workflows.
 
 ## 2. Why These Optional Skills Belong Here
 
@@ -36,7 +38,7 @@ Use this reference when the workflow should run as:
 - `video-sound-designer`
   - belongs here because it shapes audio intent and scene sound design before edit planning
 
-### Asset generation child optional skills
+### Asset generation child production skills
 
 - `magicclaw-generate-tts`
   - concrete helper for `voiceover_tts`
@@ -51,10 +53,10 @@ Use this reference when the workflow should run as:
 
 These helpers belong under the asset generation child because they are execution tools, not planning tools.
 
-### Editor child optional skills
+### Editor child production and optional skills
 
 - `video-subtitle-alignment`
-  - belongs here because it refines timing truth for dialogue scenes
+  - belongs here because it refines timing truth for dialogue scenes, and remains optional because some final compositions do not need dialogue subtitle timing
 - `magicclaw-compose-video`
   - belongs here because it assembles the canonical `video-orchestrator` payload and submits the final cloud composition task from edit truth plus asset truth
 
@@ -102,7 +104,7 @@ These helpers belong under the asset generation child because they are execution
 4. Asset generation child:
    - `video-asset-dag`
    - `video-asset-executor`
-   - optional concrete helper skills during execution
+   - MagicClaw concrete helper skills during production execution
 5. Main agent:
    - inspect `asset-manifest.json` and `run-report.json`
    - optional `video-asset-visualizer`

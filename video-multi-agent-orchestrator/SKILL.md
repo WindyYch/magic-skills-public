@@ -61,10 +61,13 @@ Do not let the editor child directly rewrite story or asset truth.
   - optional craft: `video-director`, `video-art-director`, `video-sound-designer`
 - Asset generation child:
   - required core: `video-asset-dag`, `video-asset-executor`
-  - optional concrete helpers: `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music`
+  - production concrete helpers: `magicclaw-generate-tts`, `magicclaw-generate-img`, `magicclaw-imgs-to-img`, `magicclaw-generate-video`, `magicclaw-generate-music`
 - Editor child:
   - required core: `video-editor`
-  - optional finishing: `video-subtitle-alignment`, `magicclaw-compose-video`
+  - production finishing: `magicclaw-compose-video`
+  - optional finishing: `video-subtitle-alignment`
+
+For a production preset that must create real assets and final video, install the production concrete helpers and production finishing skills as required profile skills. Without them, the workflow may still plan artifacts, but it cannot complete real media generation or final cloud composition.
 
 For the full ownership matrix, file write permissions, and dispatch templates, read:
 

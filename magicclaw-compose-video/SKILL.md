@@ -49,6 +49,8 @@ Environment:
 - `MAGICCLAW_TASK_API_BASE_URL`: defaults to `https://clawapi-test.magiclight.ai`.
 - `MAGICCLAW_TASK_TOKEN`: sent as `Authorization: Bearer <token>` unless it already starts with `Bearer `.
 
+For create requests, the resolved `video_orchestrator_param_json.trace_id` is also sent as HTTP header `X-Trace-Id` to keep `mc-task-api` and `mc-task-admin` logs on the same trace.
+
 ## Commands
 
 Preview the assembled request body without network:

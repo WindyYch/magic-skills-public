@@ -91,10 +91,13 @@ class MagicClawComposeVideoTests(unittest.TestCase):
 
             payload = self.module.build_request_body(args)
 
-        self.assertEqual(payload["trace_id"], "trace-demo")
+        self.assertNotIn("trace_id", payload)
         self.assertEqual(payload["source"], "magicclaw_compose_video")
         self.assertEqual(payload["biz_callback_extra_json"], {"request_id": "req-123"})
         self.assertEqual(payload["video_orchestrator_param_json"]["trace_id"], "trace-demo")
+        self.assertEqual(self.module.payload_trace_id(payload), "trace-demo")
+        with patch.dict("os.environ", {"MAGICCLAW_TASK_TOKEN": "token-demo"}):
+            self.assertEqual(self.module.build_headers("trace-demo")["X-Trace-Id"], "trace-demo")
         self.assertEqual(
             payload["video_orchestrator_param_json"]["input_protocol"],
             "video_remotion_renderer",

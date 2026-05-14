@@ -89,7 +89,6 @@ def build_request_body_from_param(args: argparse.Namespace, param: dict[str, Any
 
     body: dict[str, Any] = {
         "source": args.source,
-        "trace_id": trace_id,
         "video_orchestrator_param_json": param,
     }
     if args.biz_callback_url:
@@ -158,7 +157,7 @@ def _string_value(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def build_headers() -> dict[str, str]:
+def build_headers(trace_id: str | None = None) -> dict[str, str]:
     token = os.getenv("MAGICCLAW_TASK_TOKEN", "").strip()
 
     headers = {"Content-Type": "application/json"}
@@ -166,7 +165,13 @@ def build_headers() -> dict[str, str]:
         return headers
 
     authorization = token if token.lower().startswith("bearer ") else "Bearer " + token
-    headers["Authorization"] = authorization
+    headers = {
+        "Authorization": authorization,
+        "Content-Type": "application/json",
+    }
+    normalized_trace_id = _string_value(trace_id)
+    if normalized_trace_id:
+        headers["X-Trace-Id"] = normalized_trace_id
     return headers
 
 
@@ -248,7 +253,6 @@ def build_body_validation(payload: dict[str, Any] | None) -> dict[str, Any]:
 
     expected_top_level = {
         "source",
-        "trace_id",
         "biz_callback_url",
         "biz_callback_extra_json",
         "video_orchestrator_param_json",
@@ -440,7 +444,8 @@ def source_type_to_asset_types(raw_source_type: str) -> list[str]:
 
 def build_dry_run_output(args: argparse.Namespace, payload: dict[str, Any] | None) -> dict[str, Any]:
     base_url = args.base_url or args.task_api_base_url
-    headers = redact_headers(build_headers())
+    trace_id = payload_trace_id(payload)
+    headers = redact_headers(build_headers(trace_id))
     create_url = join_url(base_url, args.endpoint_path)
     query_url = join_url(base_url, args.query_endpoint_path)
     query_body = {"task_ids": [args.task_id or "<created_task_id>"]}
@@ -459,7 +464,7 @@ def build_dry_run_output(args: argparse.Namespace, payload: dict[str, Any] | Non
             "poll_interval_seconds": args.poll_interval_seconds,
             "max_wait_seconds": args.max_wait_seconds,
             "timeout_seconds": args.timeout,
-            "trace_id": payload.get("trace_id") if isinstance(payload, dict) else None,
+            "trace_id": trace_id,
             "timeline_scene_count": count_timeline_scenes(payload),
             "manifest_asset_count": count_manifest_assets(payload),
         },
@@ -489,9 +494,18 @@ def build_dry_run_output(args: argparse.Namespace, payload: dict[str, Any] | Non
     return output
 
 
-def request_json(url: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]:
+def payload_trace_id(payload: dict[str, Any] | None) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    param = payload.get("video_orchestrator_param_json")
+    if not isinstance(param, dict):
+        return None
+    return _string_value(param.get("trace_id")) or None
+
+
+def request_json(url: str, payload: dict[str, Any], timeout: int, trace_id: str | None = None) -> dict[str, Any]:
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    request = Request(url, data=body, headers=build_headers(), method="POST")
+    request = Request(url, data=body, headers=build_headers(trace_id), method="POST")
 
     try:
         with urlopen(request, timeout=timeout) as response:
@@ -549,9 +563,10 @@ def query_task(
     endpoint_path: str,
     task_id: str,
     timeout: int,
+    trace_id: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     url = join_url(base_url, endpoint_path)
-    response = request_json(url, {"task_ids": [task_id]}, timeout)
+    response = request_json(url, {"task_ids": [task_id]}, timeout, trace_id)
     tasks = extract_tasks(response)
     for task in tasks:
         if task.get("task_id") == task_id:
@@ -636,7 +651,11 @@ def extract_source_url(task: dict[str, Any], task_result: Any) -> str | None:
     return extract_result_url(task_result)
 
 
-def build_pending_output(task_id: str, create_response: dict[str, Any]) -> dict[str, Any]:
+def build_pending_output(
+    task_id: str,
+    create_response: dict[str, Any],
+    fallback_trace_id: str | None = None,
+) -> dict[str, Any]:
     return {
         "ok": True,
         "mode": "submit_only",
@@ -645,7 +664,7 @@ def build_pending_output(task_id: str, create_response: dict[str, Any]) -> dict[
         "status_code": 1,
         "video_url": None,
         "source_url": None,
-        "trace_id": create_response.get("trace_id"),
+        "trace_id": create_response.get("trace_id") or fallback_trace_id,
         "elapsed_seconds": 0.0,
         "query_attempts": 0,
         "error": None,
@@ -672,6 +691,7 @@ def build_task_output(
     elapsed_seconds: float,
     *,
     mode: str,
+    fallback_trace_id: str | None = None,
 ) -> dict[str, Any]:
     input_params_raw = task.get("input_params")
     task_result_raw = task.get("task_result")
@@ -689,7 +709,7 @@ def build_task_output(
         "status_code": coerce_status_code(raw_status),
         "video_url": source_url if not failed else None,
         "source_url": source_url if not failed else None,
-        "trace_id": query_response.get("trace_id") or (create_response or {}).get("trace_id"),
+        "trace_id": query_response.get("trace_id") or (create_response or {}).get("trace_id") or fallback_trace_id,
         "elapsed_seconds": round(elapsed_seconds, 2),
         "query_attempts": query_attempts,
         "error": (
@@ -723,6 +743,7 @@ def wait_for_task(
     poll_interval_seconds: int,
     max_wait_seconds: int,
     timeout: int,
+    trace_id: str | None = None,
 ) -> dict[str, Any]:
     started = time.time()
     deadline = started + max_wait_seconds
@@ -735,6 +756,7 @@ def wait_for_task(
             query_endpoint_path,
             task_id,
             timeout,
+            trace_id,
         )
         status = task.get("status")
 
@@ -747,6 +769,7 @@ def wait_for_task(
                 query_attempts=attempts,
                 elapsed_seconds=time.time() - started,
                 mode="submit_and_wait" if create_response is not None else "query",
+                fallback_trace_id=trace_id,
             )
 
         if not is_running_status(status):
@@ -788,19 +811,21 @@ def run_video_orchestrator_task(
 
     create_response = None
     resolved_task_id = task_id
+    trace_id = payload_trace_id(payload)
 
     if resolved_task_id is None:
         create_response = request_json(
             join_url(base_url, create_endpoint_path),
             payload or {},
             timeout,
+            trace_id,
         )
         resolved_task_id = extract_task_id(create_response)
         if no_wait:
-            return build_pending_output(resolved_task_id, create_response)
+            return build_pending_output(resolved_task_id, create_response, trace_id)
 
     if no_wait:
-        query_response, task = query_task(base_url, query_endpoint_path, resolved_task_id, timeout)
+        query_response, task = query_task(base_url, query_endpoint_path, resolved_task_id, timeout, trace_id)
         return build_task_output(
             task_id=resolved_task_id,
             task=task,
@@ -809,6 +834,7 @@ def run_video_orchestrator_task(
             query_attempts=1,
             elapsed_seconds=0.0,
             mode="query",
+            fallback_trace_id=trace_id,
         )
 
     return wait_for_task(
@@ -819,6 +845,7 @@ def run_video_orchestrator_task(
         poll_interval_seconds=poll_interval_seconds,
         max_wait_seconds=max_wait_seconds,
         timeout=timeout,
+        trace_id=trace_id,
     )
 
 
