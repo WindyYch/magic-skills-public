@@ -161,14 +161,13 @@ def _string_value(value: Any) -> str:
 def build_headers() -> dict[str, str]:
     token = os.getenv("MAGICCLAW_TASK_TOKEN", "").strip()
 
-    authorization = token
-    if not authorization.lower().startswith("bearer "):
-        authorization = "Bearer " + authorization
+    headers = {"Content-Type": "application/json"}
+    if not token:
+        return headers
 
-    return {
-        "Authorization": authorization,
-        "Content-Type": "application/json",
-    }
+    authorization = token if token.lower().startswith("bearer ") else "Bearer " + token
+    headers["Authorization"] = authorization
+    return headers
 
 
 def redact_headers(headers: dict[str, str]) -> dict[str, str]:

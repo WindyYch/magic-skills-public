@@ -33,6 +33,7 @@ DEFAULT_BITRATE = 128000
 DEFAULT_SPEED = 1.0
 DEFAULT_VOL = 1.0
 DEFAULT_PITCH = 0
+DEFAULT_VOICE_ID = "female-yujie"
 
 
 class MagicClawApiError(RuntimeError):
@@ -396,7 +397,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--task-id", help="Existing MagicClaw task ID to query.")
     parser.add_argument("--text", help="Input text for speech synthesis.")
-    parser.add_argument("--voice-id", help="Voice identifier inside voice_setting.")
+    parser.add_argument(
+        "--voice-id",
+        default=DEFAULT_VOICE_ID,
+        help=(
+            "MiniMax system voice ID inside voice_setting. "
+            f"Defaults to {DEFAULT_VOICE_ID}."
+        ),
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Model name sent to MagicClaw.")
     parser.add_argument(
         "--output-format",
@@ -471,8 +479,7 @@ def validate_args(args: argparse.Namespace) -> argparse.Namespace:
 
     if not args.text or not args.text.strip():
         raise MagicClawApiError("--text is required unless --task-id is provided")
-    if not args.voice_id or not args.voice_id.strip():
-        raise MagicClawApiError("--voice-id is required unless --task-id is provided")
+    args.voice_id = args.voice_id.strip()
     return args
 
 

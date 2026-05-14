@@ -90,6 +90,8 @@ audio_protocol_patch:
 ## Hard Rules
 
 - Voiceover and dialogue must remain separate audio truths.
+- For MagicClaw voiceover TTS, any `voice_id` you specify must be a valid MiniMax system voice ID. If no specific system voice is needed, leave `voice_id` unset so downstream execution uses its default system voice.
+- Do not invent voice IDs such as `narrator_voice`, `hero_voice`, or `CHAR_01_VOICE` for MagicClaw TTS.
 - For native dialogue video, set subtitle source to `dialogue_alignment`.
 - Do not average dialogue subtitles across a scene.
 - If audio-driven video lacks an `audio_asset` or generation-ready `audio_spec`, return `missing_inputs_report`.

@@ -76,6 +76,20 @@ class MagicClawGenerateTtsCliTests(unittest.TestCase):
             },
         )
 
+    def test_build_payload_defaults_to_system_voice_when_voice_id_is_omitted(self):
+        parser = self.module.build_parser()
+        args = parser.parse_args(
+            [
+                "--text",
+                "hello world",
+            ]
+        )
+
+        args = self.module.validate_args(args)
+        payload = self.module.build_payload(args)
+
+        self.assertEqual(payload["voice_setting"]["voice_id"], "female-yujie")
+
     def test_main_routes_to_tts_endpoint_and_sets_audio_url(self):
         result = {
             "task_id": "task-tts-123",

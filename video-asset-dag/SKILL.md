@@ -164,6 +164,9 @@ Do not drift these fixed task types to other tool names unless the user explicit
 
 - If `audio_strategy.voice_render_mode = remotion_tts` and scene `audio.text` is non-empty, create a `P1` `voiceover_tts` task.
 - When `voiceover_tts` is used in the standard MagicClaw TTS path, prefer `tool: magicclaw-generate-tts`.
+- For MagicClaw `voiceover_tts`, use a valid MiniMax system `voice_id` when one is provided by upstream audio planning; if none is provided, omit it and let `magicclaw-generate-tts` use its default system voice.
+- Do not invent synthetic TTS voice IDs such as `narrator_voice`, `hero_voice`, or `CHAR_01_VOICE`; those are not executable MiniMax system voices.
+- Do not create `voice_profile_create` tasks for ordinary MagicClaw `voiceover_tts`; `voice_profile_create` is only for workflows that genuinely require reusable native-dialogue speaker profiles.
 - If `audio_strategy.voice_render_mode = kling_native` and the workflow needs a reusable speaker profile, create `P0` `voice_profile_create` before the scene's native dialogue video task.
 - Use `global_audio_plan.alignment_required_scene_ids` to identify which scenes must preserve native dialogue timing for later subtitle alignment. Do not create `subtitle-alignment.json` tasks here; create the media prerequisites for those scenes.
 - If `audio_strategy.use_scene_sound_design = true` and the scene has non-empty `sound_design.sfx_notes` or `sound_design.ambience_notes`, create `P4` `sfx` tasks only when the workflow expects generated supplemental sound instead of relying purely on in-video sound.

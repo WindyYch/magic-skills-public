@@ -29,10 +29,18 @@ Do not use this skill for music generation.
 ## Workflow
 
 1. Confirm `MagicClawDomain` and `MagicClawAuthorization` exist.
-2. Collect `text` and `voice_id`.
+2. Collect `text` and an optional MiniMax system `voice_id`.
 3. Run the script.
 4. By default, return immediately after task creation and persist the returned provider `task_id`.
 5. Return only the minimal task result fields needed by downstream orchestration.
+
+## Voice ID Rules
+
+- `voice_id` must be a valid MiniMax system voice ID, such as `female-yujie`, `female-shaonv`, `female-chengshu`, `male-qn-qingse`, `male-qn-jingying`, `male-qn-badao`, `Chinese (Mandarin)_News_Anchor`, or `English_Trustworthy_Man`.
+- If upstream planning already provides a valid MiniMax system `voice_id`, pass it through unchanged.
+- If no `voice_id` is provided, omit `--voice-id`; the script defaults to `female-yujie`.
+- Do not invent character-style IDs such as `narrator_voice`, `hero_voice`, or `CHAR_01_VOICE`.
+- Do not create `voice_profile_create` tasks for MagicClaw voiceover TTS. This skill uses existing MiniMax system voices only.
 
 ## Commands
 
@@ -64,8 +72,8 @@ python3 "$SKILL_DIR/scripts/generate_tts.py" \
 
 - Required for create:
   - `--text`
-  - `--voice-id`
 - Optional:
+  - `--voice-id` (defaults to `female-yujie`)
   - `--model`
   - `--output-format`
   - `--source`
@@ -101,6 +109,7 @@ Do not depend on provider raw responses, `input_params`, or `task_result` in thi
 
 ## Common Mistakes
 
-- Forgetting `--voice-id`
+- Passing an invented `voice_id` instead of a MiniMax system voice ID
+- Creating a separate voice profile for ordinary MagicClaw voiceover TTS
 - Using this skill for music generation instead of TTS
 - Expecting synchronous inline audio bytes instead of an async task result
